@@ -1,0 +1,304 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Legendary RP — Mini Game Hub</title>
+  <style>
+    :root{
+      --bg:#070c18;       /* dark navy */
+      --card:#0d1324;     /* card background */
+      --text:#e8eefc;     /* light text */
+      --muted:#a7b6da;    /* muted text */
+      --accent:#35d0ff;   /* accent/cyan */
+      --blue:#3b82f6; --violet:#8b5cf6; --teal:#14b8a6; --pink:#ec4899; --amber:#f59e0b; --red:#ef4444; --green:#22c55e; --yellow:#facc15;
+      --shadow:0 10px 30px rgba(0,0,0,.45), inset 0 1px 0 rgba(255,255,255,.04);
+      --radius:18px; --bg-image:none;
+      /* new: central font token so the UI looks uniform */
+      --font: Inter, ui-sans-serif, system-ui, Segoe UI, Roboto, Helvetica, Arial;
+    }
+    *{box-sizing:border-box}
+    html,body{height:100%}
+    body{margin:0; font-family:Inter,ui-sans-serif,system-ui,Segoe UI,Roboto,Helvetica,Arial; color:var(--text); background:radial-gradient(1200px 600px at 80% -10%, rgba(53,208,255,.10), transparent 60%), radial-gradient(1000px 500px at 0% 110%, rgba(139,92,246,.12), transparent 60%), var(--bg);}    
+    body.has-photo{background-image:var(--bg-image); background-size:cover; background-position:center; background-attachment:fixed}
+    body.has-photo::before{content:""; position:fixed; inset:0; background:linear-gradient(180deg, rgba(7,12,24,.78), rgba(7,12,24,.9)); z-index:-1}
+
+    .container{max-width:1200px; margin:0 auto; padding:24px}
+    header{display:flex; gap:16px; align-items:center; justify-content:space-between; flex-wrap:wrap}
+    .brand{display:flex; align-items:center; gap:14px}
+    .logo{width:48px;height:48px;border-radius:12px;background:linear-gradient(135deg,var(--accent),#7c3aed);box-shadow:var(--shadow);display:grid;place-items:center;font-weight:900;color:#001018}
+    h1{font-size:clamp(20px,3.3vw,34px); margin:0}
+    .subtitle{color:var(--muted); font-size:14px}
+    .panel{background:var(--card); border-radius:var(--radius); box-shadow:var(--shadow); padding:16px}
+    .grid{display:grid; grid-template-columns:repeat(5,1fr); gap:12px}
+    @media (max-width:1020px){.grid{grid-template-columns:repeat(3,1fr)}}
+    @media (max-width:560px){.grid{grid-template-columns:repeat(2,1fr)}}
+
+    .game-btn{border:none; cursor:pointer; border-radius:14px; padding:16px 12px; color:white; font-weight:800; text-shadow:0 1px 0 rgba(0,0,0,.35); box-shadow:var(--shadow)}
+    .game-btn:active{transform:translateY(1px) scale(.99)}
+    .btn-blue{background:linear-gradient(135deg,var(--blue),#1d4ed8)}
+    .btn-teal{background:linear-gradient(135deg,var(--teal),#0f766e)}
+    .btn-pink{background:linear-gradient(135deg,var(--pink),#9d174d)}
+    .btn-red{background:linear-gradient(135deg,var(--red),#991b1b)}
+    .btn-green{background:linear-gradient(135deg,var(--green),#14532d)}
+
+    .wrap{display:grid; grid-template-columns:340px 1fr; gap:16px}
+    @media (max-width:1100px){.wrap{grid-template-columns:1fr}}
+
+    .game-card{min-height:520px}
+    .game-header{display:flex; align-items:center; justify-content:space-between; gap:10px; margin-bottom:8px}
+    .game-title{font-size:18px; font-weight:900}
+    .score{color:var(--muted); font-size:14px}
+    .muted{color:var(--muted)}
+    .section{display:none}
+    .section.active{display:block}
+
+    /* Typing */
+    #typeText{background:#0f1629; padding:14px; border-radius:12px; line-height:1.75}
+    #typeText span.correct{color:#86efac}
+    #typeText span.wrong{color:#fca5a5; text-decoration:underline}
+    #typeText span.current{background:rgba(53,208,255,.15); border-radius:6px}
+    #typingInput{width:100%; padding:12px 14px; border-radius:10px; background:#0e1526; border:1px solid rgba(255,255,255,.06); color:var(--text)}
+
+    /* Memory */
+    #memoryGrid{display:grid; grid-template-columns:repeat(4,1fr); gap:10px}
+    .card{ background:#0f1629; height:78px; border-radius:12px; display:grid; place-items:center; font-size:30px; cursor:pointer; transition:transform .2s ease, background .2s ease; user-select:none; box-shadow:var(--shadow) }
+    .card.revealed{background:#13233f; transform:scale(1.02)}
+    .card.matched{background:#0f2a16}
+
+    /* Clicker */
+    #clickerStage{display:grid; grid-template-columns:1fr; gap:10px}
+    #bigClick{height:280px; border-radius:14px; display:grid; place-items:center; background:radial-gradient(circle at 50% 40%, rgba(255,255,255,.06), transparent 50%), #0f1629; cursor:pointer; font-size:28px; font-weight:900}
+    .shop{display:grid; grid-template-columns:repeat(3,1fr); gap:10px}
+    .shop .item{background:#0e1526; border:1px solid rgba(255,255,255,.06); border-radius:12px; padding:10px}
+    .item h4{margin:0 0 6px 0; font-size:14px}
+
+    /* Mole */
+    #moleGrid{display:grid; grid-template-columns:repeat(3,1fr); gap:10px}
+    .hole{height:120px; background:#0f1629; border-radius:12px; position:relative; overflow:hidden}
+    .mole{position:absolute; left:10px; right:10px; bottom:0; height:110px; border-radius:12px; background:linear-gradient(#fde68a,#f59e0b); box-shadow:var(--shadow); display:grid; place-items:center; font-size:40px; cursor:pointer; transform:translateY(110px); transition:transform .18s ease}
+    .mole.up{transform:translateY(0)}
+
+    /* Simon */
+    #simonBoard{display:grid; grid-template-columns:repeat(2,150px); gap:12px; justify-content:center}
+    .pad{width:150px; height:150px; border-radius:18px; box-shadow:var(--shadow); opacity:.85; cursor:pointer}
+    .pad.active{filter:brightness(1.6); opacity:1}
+    .p-red{background:linear-gradient(135deg,#ef4444,#991b1b)}
+    .p-blue{background:linear-gradient(135deg,#3b82f6,#1d4ed8)}
+    .p-green{background:linear-gradient(135deg,#22c55e,#14532d)}
+    .p-yellow{background:linear-gradient(135deg,#facc15,#92400e)}
+
+    .kbd{font-family: ui-monospace,SFMono-Regular,Menlo,monospace; background:#0e1526; border:1px solid rgba(255,255,255,.08); padding:2px 6px; border-radius:6px}
+    .row{display:flex; gap:8px; align-items:center}
+    input.url{width:100%; padding:10px 12px; border-radius:10px; background:#0e1526; border:1px solid rgba(255,255,255,.08); color:var(--text)}
+  </style>
+</head>
+<body>
+  <div class="container">
+    <header>
+      <div class="brand">
+        <div class="logo">LRP</div>
+        <div>
+          <h1>Legendary RP — Mini Game Hub</h1>
+          <div class="subtitle">Matching • Heist Clicker • Whack-a-Mole • Typing • Simon</div>
+        </div>
+      </div>
+      <div class="row">
+        <input id="bgUrl" class="url" placeholder="Background image URL"/>
+        <button id="setBg" class="game-btn btn-blue">Set BG</button>
+      </div>
+    </header>
+
+    <div class="panel" style="margin-top:16px">
+      <div class="grid" id="launcher">
+        <button class="game-btn btn-pink"  data-section="memory">Mugshot Match</button>
+        <button class="game-btn btn-green" data-section="clicker">Heist Clicker</button>
+        <button class="game-btn btn-red"   data-section="mole">Whack-a-Mole</button>
+        <button class="game-btn btn-teal"  data-section="typing">Typing Sprint</button>
+        <button class="game-btn btn-blue"  data-section="simon">Simon Says</button>
+      </div>
+    </div>
+
+    <div class="wrap">
+      <aside class="panel" style="position:sticky; top:16px">
+        <div class="game-header"><div class="game-title" id="sideTitle">Select a game</div></div>
+        <div class="muted" id="sideDesc">Click a button above. Tip: paste a GTA-RP vibe background (saved locally).</div>
+        <div id="sidePanel" class="muted" style="margin-top:10px"></div>
+      </aside>
+
+      <main class="panel game-card">
+        <!-- Memory -->
+        <section id="memory" class="section">
+          <div class="game-header"><div class="game-title">Mugshot Match</div><div class="score">Moves: <span id="moves">0</span> • Matches: <span id="matches">0</span>/8</div></div>
+          <div id="memoryGrid"></div>
+          <div style="margin-top:10px; display:flex; gap:8px; flex-wrap:wrap">
+            <button class="game-btn btn-teal" id="resetMemory">Shuffle</button>
+            <button class="game-btn btn-amber" id="peek">Lineup Peek (2s)</button>
+          </div>
+        </section>
+
+        <!-- Clicker -->
+        <section id="clicker" class="section">
+          <div class="game-header"><div class="game-title">Heist Clicker</div><div class="score">$ <span id="cash">0</span> • /click: <span id="perClick">1</span> • CPS: <span id="cps">0</span></div></div>
+          <div id="clickerStage">
+            <div id="bigClick" class="panel" style="background:unset">CLICK TO EARN</div>
+            <div class="shop">
+              <div class="item"><h4>Better Gear</h4><div class="muted">+1 per click</div><button id="buyGear" class="game-btn btn-yellow">Buy $15</button></div>
+              <div class="item"><h4>Inside Man</h4><div class="muted">+5 per click</div><button id="buyInside" class="game-btn btn-violet">Buy $100</button></div>
+              <div class="item"><h4>Auto Clicker</h4><div class="muted">+1 CPS</div><button id="buyAuto" class="game-btn btn-green">Buy $75</button></div>
+              <div class="item"><h4>Crew Van</h4><div class="muted">+5 CPS</div><button id="buyCrew" class="game-btn btn-blue">Buy $450</button></div>
+              <div class="item"><h4>Vault Plan</h4><div class="muted">Events ↑</div><button id="buyEvents" class="game-btn btn-pink">Buy $300</button></div>
+            </div>
+            <div id="eventLog" class="muted" style="margin-top:8px; font-size:13px">Events appear here…</div>
+          </div>
+        </section>
+
+        <!-- Mole -->
+        <section id="mole" class="section">
+          <div class="game-header"><div class="game-title">Whack-a-Suspect</div><div class="score">Score: <span id="moleScore">0</span> • Time: <span id="moleTime">30</span>s</div></div>
+          <div id="moleGrid"></div>
+        </section>
+
+        <!-- Typing -->
+        <section id="typing" class="section">
+          <div class="game-header"><div class="game-title">Typing Sprint</div><div class="score">WPM: <span id="wpm">0</span> • Acc: <span id="acc">100%</span></div></div>
+          <div id="typeText" style="min-height:110px"></div>
+          <input id="typingInput" type="text" placeholder="Start typing here…" autocomplete="off" />
+        </section>
+
+        <!-- Simon -->
+        <section id="simon" class="section">
+          <div class="game-header"><div class="game-title">Simon Says</div><div class="score">Round: <span id="simonRound">0</span></div></div>
+          <div id="simonBoard">
+            <div class="pad p-red"   data-pad="0"></div>
+            <div class="pad p-blue"  data-pad="1"></div>
+            <div class="pad p-green" data-pad="2"></div>
+            <div class="pad p-yellow"data-pad="3"></div>
+          </div>
+        </section>
+      </main>
+    </div>
+  </div>
+
+  <script>
+  document.addEventListener('DOMContentLoaded', () => {
+    // Helpers
+    const $ = (s, r=document) => r.querySelector(s);
+    const $$ = (s, r=document) => [...r.querySelectorAll(s)];
+    const safeNum = (v, fb=0) => { v = Number(v); return Number.isFinite(v) ? v : fb; };
+
+    // Router
+    const sections = $$('.section');
+    function show(id){
+      sections.forEach(s => s.classList.remove('active'));
+      const el = document.getElementById(id);
+      if(el){ el.classList.add('active'); window.scrollTo({top:0, behavior:'smooth'}); updateSidebar(id); }
+      if(id==='mole') startMoles(); else stopMoles(true);
+    }
+    const info = {
+      memory:{title:'Mugshot Match',desc:'Flip two to find a pair. Clear the grid!'},
+      clicker:{title:'Heist Clicker',desc:'Click to earn, buy upgrades. Random events fire periodically.'},
+      mole:{title:'Whack-a-Suspect',desc:'Click 🦹 for +1, avoid 🚫 (−2). 30s round.'},
+      typing:{title:'Typing Sprint',desc:'Type the quote. Press Enter for a new one.'},
+      simon:{title:'Simon Says',desc:'Remember and repeat the sequence.'}
+    };
+    function updateSidebar(id){
+      $('#sideTitle').textContent = info[id]?.title || 'Select a game';
+      $('#sideDesc').textContent  = info[id]?.desc  || 'Click a button above.';
+      $('#sidePanel').innerHTML   = '';
+    }
+
+    // Launcher bindings (and global safety net)
+    const launcher = $('#launcher');
+    if(launcher){ launcher.addEventListener('click', (e)=>{ const btn=e.target.closest('button[data-section]'); if(btn) show(btn.dataset.section); }); }
+    document.addEventListener('click', (e)=>{ const btn=e.target.closest('button[data-section]'); if(btn) show(btn.dataset.section); });
+
+    // Background default + setter
+    const DEFAULT_BG = 'https://i.ibb.co/20f5k7Tn/awfasfaga.png';
+    const savedBG = localStorage.getItem('lrp_bg_url');
+    const startBG = savedBG || DEFAULT_BG;
+    if(startBG){ document.body.classList.add('has-photo'); document.body.style.setProperty('--bg-image', `url('${startBG}')`); }
+    $('#bgUrl').value = startBG;
+    $('#setBg').addEventListener('click', ()=>{ const url=$('#bgUrl').value.trim(); if(url){ document.body.classList.add('has-photo'); document.body.style.setProperty('--bg-image', `url('${url}')`); localStorage.setItem('lrp_bg_url', url);} });
+
+    // ---------- Memory ----------
+    const memoryGrid = $('#memoryGrid'); const movesEl = $('#moves'); const matchesEl = $('#matches');
+    const EMOJIS = ['🦹','🚓','🧨','💼','🔒','🔦','🎯','🧭'];
+    let deck=[], opened=[], moves=0, matches=0, lock=false;
+    function buildDeck(){ deck=[...EMOJIS,...EMOJIS].sort(()=>Math.random()-0.5).map((e,i)=>({id:i,emoji:e,matched:false})); }
+    function renderDeck(){ memoryGrid.innerHTML=''; deck.forEach(c=>{ const el=document.createElement('div'); el.className='card'; el.dataset.id=c.id; el.textContent='◼️'; memoryGrid.appendChild(el); }); moves=0; matches=0; opened=[]; lock=false; movesEl.textContent=0; matchesEl.textContent=0; }
+    function reveal(el){ if(lock) return; const id=+el.dataset.id; const c=deck.find(x=>x.id===id); if(c.matched||opened.includes(id)) return; el.classList.add('revealed'); el.textContent=c.emoji; opened.push(id); if(opened.length===2){ lock=true; moves++; movesEl.textContent=moves; const [a,b]=opened.map(i=>deck.find(x=>x.id===i)); setTimeout(()=>{ if(a.emoji===b.emoji){ a.matched=b.matched=true; matches++; matchesEl.textContent=matches; opened.forEach(i=>{ const t=$(`[data-id="${i}"]`); t.classList.remove('revealed'); t.classList.add('matched'); t.textContent='✓'; }); } else { opened.forEach(i=>{ const t=$(`[data-id="${i}"]`); t.classList.remove('revealed'); t.textContent='◼️'; }); } if(matches===EMOJIS.length){ const banner=document.createElement('div'); banner.style.marginTop='10px'; banner.innerHTML='<div class="kbd">Case Closed!</div>'; memoryGrid.parentElement.appendChild(banner); setTimeout(()=>banner.remove(),2000); } opened=[]; lock=false; }, 500);} }
+    memoryGrid.addEventListener('click', (e)=>{ const el=e.target.closest('.card'); if(el) reveal(el); });
+    $('#resetMemory').addEventListener('click', ()=>{ buildDeck(); renderDeck(); });
+    $('#peek').addEventListener('click', ()=>{ if(lock) return; lock=true; $$('#memoryGrid .card').forEach(el=>{ const id=+el.dataset.id; const c=deck.find(x=>x.id===id); if(!c.matched){ el.textContent=c.emoji; el.classList.add('revealed'); }}); setTimeout(()=>{ $$('#memoryGrid .card').forEach(el=>{ const id=+el.dataset.id; const c=deck.find(x=>x.id===id); if(!c.matched){ el.textContent='◼️'; el.classList.remove('revealed'); }}); lock=false; }, 2000); });
+
+    // ---------- Clicker ----------
+    const cashEl=$('#cash'), perClickEl=$('#perClick'), cpsEl=$('#cps'), bigClick=$('#bigClick'), logEl=$('#eventLog');
+    const DEFAULT_CLICKER = { cash:0, add:1, crit:0.03, cps:0, eventsTier:0 };
+    const normalize = (o)=>({ cash:safeNum(o?.cash,0), add:safeNum(o?.add,1), crit:Math.min(.5,Math.max(0,safeNum(o?.crit,0.03))), cps:safeNum(o?.cps,0), eventsTier:Math.max(0,Math.floor(safeNum(o?.eventsTier,0))) });
+    const load = ()=>{ try{ const r=localStorage.getItem('lrp_clicker'); return normalize(r?JSON.parse(r):DEFAULT_CLICKER);}catch{ return {...DEFAULT_CLICKER}; } };
+    let clicker = load();
+    const save = ()=>localStorage.setItem('lrp_clicker', JSON.stringify(clicker));
+    const fmt = (n)=>Math.floor(safeNum(n,0)).toLocaleString();
+    function hud(){ cashEl.textContent=fmt(clicker.cash); perClickEl.textContent=safeNum(clicker.add,1).toFixed(0); cpsEl.textContent=safeNum(clicker.cps,0).toFixed(0); }
+    function log(m){ const p=document.createElement('div'); p.textContent=`» ${m}`; logEl.prepend(p); while(logEl.children.length>6) logEl.lastChild.remove(); }
+    function burst(t){ const s=document.createElement('div'); s.textContent=t; s.style.position='absolute'; s.style.pointerEvents='none'; s.style.transform='translate(-50%,-50%)'; s.style.fontWeight='900'; s.style.fontSize='24px'; s.style.textShadow='0 2px 0 rgba(0,0,0,.4)'; s.style.animation='float 900ms ease forwards'; s.style.left='50%'; s.style.top='50%'; bigClick.appendChild(s); setTimeout(()=>s.remove(),900); }
+    // float animation style
+    (function(){ const st=document.createElement('style'); st.textContent='@keyframes float{0%{opacity:1;transform:translate(-50%,-50%) scale(1)}100%{opacity:0;transform:translate(-50%,-120%) scale(1.2)}}'; document.head.appendChild(st); })();
+
+    bigClick.addEventListener('click', ()=>{ const crit=Math.random()<clicker.crit; const add=crit? clicker.add*5 : clicker.add; clicker.cash += add; hud(); burst(crit? `CRIT +$${add}` : `+$${add}`); save(); });
+    $('#buyGear').addEventListener('click', ()=>{ if(clicker.cash>=15){ clicker.cash-=15; clicker.add+=1; hud(); save(); }});
+    $('#buyInside').addEventListener('click', ()=>{ if(clicker.cash>=100){ clicker.cash-=100; clicker.add+=5; hud(); save(); }});
+    $('#buyAuto').addEventListener('click', ()=>{ if(clicker.cash>=75){ clicker.cash-=75; clicker.cps+=1; hud(); save(); }});
+    $('#buyCrew').addEventListener('click', ()=>{ if(clicker.cash>=450){ clicker.cash-=450; clicker.cps+=5; hud(); save(); }});
+    $('#buyEvents').addEventListener('click', ()=>{ if(clicker.cash>=300){ clicker.cash-=300; clicker.eventsTier++; hud(); save(); startEvents(); log('Bigger jobs unlocked: events happen more often.'); }});
+
+    // Passive tick & random events always-on
+    setInterval(()=>{ if(clicker.cps>0){ clicker.cash+=clicker.cps; hud(); save(); } },1000);
+    function startEvents(){ const base = Math.max(5, 18 - clicker.eventsTier*2); const delay = base + Math.random()*8; setTimeout(()=>{ triggerEvent(); startEvents(); }, delay*1000); }
+    function triggerEvent(){
+      const cash=safeNum(clicker.cash,0), add=safeNum(clicker.add,1), cps=safeNum(clicker.cps,0); let msg='', delta=0; const r=Math.random();
+      if(r<0.12){ delta=-Math.floor(cash*(0.15+Math.random()*0.25)); if(delta){ clicker.cash=cash+delta; msg=`Police raid! Lost $${fmt(-delta)}.`; }}
+      else if(r<0.24){ delta=-(100+Math.floor(Math.random()*400)); clicker.cash=Math.max(0,cash+delta); msg=`Shootout! Hospital bills $${fmt(-delta)}.`; }
+      else if(r<0.34){ delta=-(50+Math.floor(Math.random()*100)); clicker.cash=Math.max(0,cash+delta); msg=`Dye pack exploded. -$${fmt(-delta)}`; }
+      else if(r<0.48){ delta=Math.floor(cash*(0.05+Math.random()*0.10)); clicker.cash=cash+delta; msg=`Crypto pump! +$${fmt(delta)}`; }
+      else if(r<0.60){ delta=100+Math.floor(Math.random()*250); clicker.cash=cash+delta; msg=`Insurance payout +$${fmt(delta)}`; }
+      else if(r<0.74){ if(add>1){ clicker.add=add-1; msg='Gear broke. -1 per click.'; } else msg='Close call. No losses.'; }
+      else if(r<0.86){ const saved=cps; msg='Heat is on! CPS paused 8s.'; clicker.cps=0; setTimeout(()=>{ clicker.cps=saved; hud(); },8000); }
+      else if(r<0.96){ clicker.cps=cps+2; msg='Crew double-time: +2 CPS (20s)'; setTimeout(()=>{ clicker.cps=Math.max(0,clicker.cps-2); hud(); },20000); }
+      else { clicker.crit=Math.min(.5,clicker.crit+.01); msg='Informant tip: +1% crit.'; }
+      hud(); save(); if(msg) log(msg);
+    }
+    startEvents(); hud();
+
+    // ---------- Whack-a-Mole ----------
+    const moleGrid=$('#moleGrid'), moleScoreEl=$('#moleScore'), moleTimeEl=$('#moleTime');
+    let moleScore=0, moleTime=30, moleTimer=null, moleLoop=null, moleRound=false;
+    function buildMoles(){ moleGrid.innerHTML=''; for(let i=0;i<9;i++){ const hole=document.createElement('div'); hole.className='hole'; const mole=document.createElement('div'); mole.className='mole'; mole.textContent='🦹'; hole.appendChild(mole); moleGrid.appendChild(hole);} }
+    function startMoles(){ buildMoles(); moleScore=0; moleTime=30; moleRound=true; moleScoreEl.textContent=0; moleTimeEl.textContent=moleTime; if(moleTimer) clearInterval(moleTimer); moleTimer=setInterval(()=>{ moleTime--; moleTimeEl.textContent=moleTime; if(moleTime<=0){ clearInterval(moleTimer); stopMoles(); } },1000); if(moleLoop) clearTimeout(moleLoop); (function tick(){ if(!moleRound) return; popOnce(); moleLoop=setTimeout(tick, 550+Math.random()*350); })(); }
+    function stopMoles(silent){ moleRound=false; if(moleLoop) clearTimeout(moleLoop); if(silent) return; const ov=document.createElement('div'); ov.style.position='fixed'; ov.style.inset='0'; ov.style.display='grid'; ov.style.placeItems='center'; ov.style.background='rgba(0,0,0,.55)'; ov.innerHTML=`<div style="background:#0b1220;padding:16px;border-radius:12px;box-shadow:var(--shadow);text-align:center"><div style="font-weight:900;font-size:18px">Time!</div><div class="muted">Score: <b>${moleScore}</b></div><button id="againMole" class="game-btn btn-red" style="margin-top:10px;padding:8px 12px">Play Again</button></div>`; document.body.appendChild(ov); $('#againMole').addEventListener('click', ()=>{ ov.remove(); startMoles(); }); }
+    function popOnce(){ if(!moleRound) return; $$('#moleGrid .mole').forEach(m=>{ m.classList.remove('up'); m.onclick=null; }); const moles=$$('#moleGrid .mole'); if(!moles.length) return; const m=moles[Math.floor(Math.random()*moles.length)]; const isCiv=Math.random()<0.15; m.textContent=isCiv?'🚫':'🦹'; void m.offsetWidth; m.classList.add('up'); m.onclick=()=>{ if(!moleRound) return; moleScore += (m.textContent==='🦹') ? 1 : -2; moleScoreEl.textContent=moleScore; m.classList.remove('up'); m.onclick=null; }; }
+
+    // ---------- Typing ----------
+    const QUOTES=['Legendary minds stay calm under pressure.','Hold the line and trust your team.','Discipline turns chaos into progress.','Small habits build unstoppable momentum.','Breathe. Focus. Execute. Review.','Courage is a quiet kind of strength.','Precision is kindness to your future self.'];
+    const typeText=$('#typeText'), typingInput=$('#typingInput');
+    let target='', idx=0, correct=0, typed=0, tstart=0;
+    function loadQuote(){ target=QUOTES[Math.floor(Math.random()*QUOTES.length)]; typeText.innerHTML=[...target].map((ch,i)=>`<span ${i===0?'class="current"':''}>${ch===' '?'&nbsp;':ch}</span>`).join(''); idx=0; correct=0; typed=0; tstart=0; updateHUD(); typingInput.value=''; typingInput.focus(); }
+    function updateHUD(){ const now=performance.now(); const min=tstart? (now-tstart)/60000:0; const wpm=min>0? Math.round((correct/5)/min):0; const acc=typed>0? Math.max(0,Math.round(100*correct/typed)):100; $('#wpm').textContent=wpm; $('#acc').textContent=acc+'%'; }
+    typingInput.addEventListener('keydown',(e)=>{ if(e.key==='Enter'){ e.preventDefault(); loadQuote(); }});
+    typingInput.addEventListener('input',()=>{ if(!$('#typing').classList.contains('active')) return; if(!tstart) tstart=performance.now(); const ch=typingInput.value.slice(-1); typed++; const spans=$$('#typeText span'); const exp=target[idx]; if(ch===exp){ spans[idx].classList.remove('current'); spans[idx].classList.add('correct'); idx++; correct++; if(idx<spans.length) spans[idx].classList.add('current'); } else { spans[idx]?.classList.add('wrong'); } updateHUD(); if(idx>=target.length){ typingInput.blur(); }});
+
+    // ---------- Simon ----------
+    const board=$('#simonBoard'), pads=$$('.pad'), roundEl=$('#simonRound');
+    let pattern=[], step=0, playing=false, waiting=false;
+    function flash(i){ pads[i].classList.add('active'); setTimeout(()=>pads[i].classList.remove('active'), 350); }
+    function playPattern(){ playing=true; waiting=false; const d=500; pattern.forEach((p,ix)=>{ setTimeout(()=>flash(p), d*ix+300); }); setTimeout(()=>{ playing=false; waiting=true; }, d*pattern.length+350); }
+    function nextRound(){ pattern.push(Math.floor(Math.random()*4)); roundEl.textContent=pattern.length; playPattern(); }
+    board.addEventListener('click',(e)=>{ if(e.target===board && !pattern.length){ nextRound(); return; } const pad=e.target.closest('.pad'); if(!pad||!waiting) return; const i=+pad.dataset.pad; flash(i); if(i!==pattern[step]){ const ov=document.createElement('div'); ov.style.position='fixed'; ov.style.inset='0'; ov.style.display='grid'; ov.style.placeItems='center'; ov.style.background='rgba(0,0,0,.55)'; ov.innerHTML=`<div style="background:#0b1220;padding:16px;border-radius:12px;box-shadow:var(--shadow);text-align:center"><div style="font-weight:900;font-size:18px">Failed on round ${pattern.length}</div><button id="againSimon" class="game-btn btn-green" style="margin-top:10px;padding:8px 12px">Try Again</button></div>`; document.body.appendChild(ov); $('#againSimon').addEventListener('click', ()=>{ ov.remove(); pattern=[]; step=0; roundEl.textContent=0; }); waiting=false; return; } step++; if(step>=pattern.length){ step=0; waiting=false; setTimeout(nextRound,600); } });
+
+    // Boot into first game
+    buildDeck(); renderDeck(); loadQuote(); updateSidebar('memory'); show('memory');
+  });
+  </script>
+</body>
+</html>
