@@ -19,7 +19,7 @@
     }
     *{box-sizing:border-box}
     html,body{height:100%}
-    body{margin:0; font-family:Inter,ui-sans-serif,system-ui,Segoe UI,Roboto,Helvetica,Arial; color:var(--text); background:radial-gradient(1200px 600px at 80% -10%, rgba(53,208,255,.10), transparent 60%), radial-gradient(1000px 500px at 0% 110%, rgba(139,92,246,.12), transparent 60%), var(--bg);}    
+    body{margin:0; font-family:var(--font); color:var(--text); background:radial-gradient(1200px 600px at 80% -10%, rgba(53,208,255,.10), transparent 60%), radial-gradient(1000px 500px at 0% 110%, rgba(139,92,246,.12), transparent 60%), var(--bg);}     
     body.has-photo{background-image:var(--bg-image); background-size:cover; background-position:center; background-attachment:fixed}
     body.has-photo::before{content:""; position:fixed; inset:0; background:linear-gradient(180deg, rgba(7,12,24,.78), rgba(7,12,24,.9)); z-index:-1}
 
@@ -41,6 +41,9 @@
     .btn-pink{background:linear-gradient(135deg,var(--pink),#9d174d)}
     .btn-red{background:linear-gradient(135deg,var(--red),#991b1b)}
     .btn-green{background:linear-gradient(135deg,var(--green),#14532d)}
+    .btn-yellow{background:linear-gradient(135deg,var(--yellow),#92400e); color:#1c1400}
+    .btn-violet{background:linear-gradient(135deg,var(--violet),#5b21b6)}
+    .btn-amber{background:linear-gradient(135deg,var(--amber),#b45309)}
 
     .wrap{display:grid; grid-template-columns:340px 1fr; gap:16px}
     @media (max-width:1100px){.wrap{grid-template-columns:1fr}}
@@ -109,14 +112,21 @@
       </div>
     </header>
 
-    <div class="panel" style="margin-top:16px">
-      <div class="grid" id="launcher">
-        <button class="game-btn btn-pink"  data-section="memory">Mugshot Match</button>
-        <button class="game-btn btn-green" data-section="clicker">Heist Clicker</button>
-        <button class="game-btn btn-red"   data-section="mole">Whack-a-Mole</button>
-        <button class="game-btn btn-teal"  data-section="typing">Typing Sprint</button>
-        <button class="game-btn btn-blue"  data-section="simon">Simon Says</button>
+    <!-- HOME / HERO so the background is visible -->
+    <section id="home" class="panel section active" style="background:rgba(0,0,0,.28); border:1px solid rgba(255,255,255,.08)">
+      <div style="display:grid; gap:14px; place-items:center; text-align:center; padding:34px 18px">
+        <div style="font-size:28px; font-weight:900; letter-spacing:.5px">Welcome to Legendary RP Mini Games</div>
+        <div class="muted" style="max-width:820px">Pick a game below. Your background shows on the home screen for full vibe. You can paste a new image at the top.</div>
+        <div class="grid" id="launcher-home">
+          <button class="game-btn btn-pink"  data-section="memory">Mugshot Match</button>
+          <button class="game-btn btn-green" data-section="clicker">Heist Clicker</button>
+          <button class="game-btn btn-red"   data-section="mole">Whack-a-Mole</button>
+          <button class="game-btn btn-teal"  data-section="typing">Typing Sprint</button>
+          <button class="game-btn btn-blue"  data-section="simon">Simon Says</button>
+        </div>
       </div>
+    </section>
+    <!-- Removed secondary launcher panel to avoid duplicate buttons -->
     </div>
 
     <div class="wrap">
@@ -126,7 +136,7 @@
         <div id="sidePanel" class="muted" style="margin-top:10px"></div>
       </aside>
 
-      <main class="panel game-card">
+      <main class="panel game-card" id="stage" style="display:none">
         <!-- Memory -->
         <section id="memory" class="section">
           <div class="game-header"><div class="game-title">Mugshot Match</div><div class="score">Moves: <span id="moves">0</span> • Matches: <span id="matches">0</span>/8</div></div>
@@ -189,7 +199,14 @@
 
     // Router
     const sections = $$('.section');
+    const stage = document.getElementById('stage');
     function show(id){
+      // hide home, show game stage area
+      const home = document.getElementById('home');
+      const stage = document.getElementById('stage');
+      if(home) home.classList.remove('active');
+      if(stage) stage.style.display='block';
+
       sections.forEach(s => s.classList.remove('active'));
       const el = document.getElementById(id);
       if(el){ el.classList.add('active'); window.scrollTo({top:0, behavior:'smooth'}); updateSidebar(id); }
@@ -209,8 +226,9 @@
     }
 
     // Launcher bindings (and global safety net)
-    const launcher = $('#launcher');
-    if(launcher){ launcher.addEventListener('click', (e)=>{ const btn=e.target.closest('button[data-section]'); if(btn) show(btn.dataset.section); }); }
+    const launcherHome = $('#launcher-home');
+    if(launcherHome){ launcherHome.addEventListener('click', (e)=>{ const btn=e.target.closest('button[data-section]'); if(btn) show(btn.dataset.section); }); }
+    // global safety net (kept):
     document.addEventListener('click', (e)=>{ const btn=e.target.closest('button[data-section]'); if(btn) show(btn.dataset.section); });
 
     // Background default + setter
@@ -234,13 +252,13 @@
 
     // ---------- Clicker ----------
     const cashEl=$('#cash'), perClickEl=$('#perClick'), cpsEl=$('#cps'), bigClick=$('#bigClick'), logEl=$('#eventLog');
-    const DEFAULT_CLICKER = { cash:0, add:1, crit:0.03, cps:0, eventsTier:0 };
-    const normalize = (o)=>({ cash:safeNum(o?.cash,0), add:safeNum(o?.add,1), crit:Math.min(.5,Math.max(0,safeNum(o?.crit,0.03))), cps:safeNum(o?.cps,0), eventsTier:Math.max(0,Math.floor(safeNum(o?.eventsTier,0))) });
+    const DEFAULT_CLICKER = { cash:0, add:1, crit:0.03, cps:1, eventsTier:0 }; // start with auto-income
+    const normalize = (o)=>({ cash:safeNum(o?.cash,0), add:safeNum(o?.add,1), crit:Math.min(.5,Math.max(0,safeNum(o?.crit,0.03))), cps:Math.max(1,safeNum(o?.cps,1)), eventsTier:Math.max(0,Math.floor(safeNum(o?.eventsTier,0))) });
     const load = ()=>{ try{ const r=localStorage.getItem('lrp_clicker'); return normalize(r?JSON.parse(r):DEFAULT_CLICKER);}catch{ return {...DEFAULT_CLICKER}; } };
     let clicker = load();
     const save = ()=>localStorage.setItem('lrp_clicker', JSON.stringify(clicker));
     const fmt = (n)=>Math.floor(safeNum(n,0)).toLocaleString();
-    function hud(){ cashEl.textContent=fmt(clicker.cash); perClickEl.textContent=safeNum(clicker.add,1).toFixed(0); cpsEl.textContent=safeNum(clicker.cps,0).toFixed(0); }
+    function hud(){ cashEl.textContent=fmt(clicker.cash); perClickEl.textContent=safeNum(clicker.add,1).toFixed(0); cpsEl.textContent=safeNum(clicker.cps,1).toFixed(0); }
     function log(m){ const p=document.createElement('div'); p.textContent=`» ${m}`; logEl.prepend(p); while(logEl.children.length>6) logEl.lastChild.remove(); }
     function burst(t){ const s=document.createElement('div'); s.textContent=t; s.style.position='absolute'; s.style.pointerEvents='none'; s.style.transform='translate(-50%,-50%)'; s.style.fontWeight='900'; s.style.fontSize='24px'; s.style.textShadow='0 2px 0 rgba(0,0,0,.4)'; s.style.animation='float 900ms ease forwards'; s.style.left='50%'; s.style.top='50%'; bigClick.appendChild(s); setTimeout(()=>s.remove(),900); }
     // float animation style
@@ -296,8 +314,8 @@
     function nextRound(){ pattern.push(Math.floor(Math.random()*4)); roundEl.textContent=pattern.length; playPattern(); }
     board.addEventListener('click',(e)=>{ if(e.target===board && !pattern.length){ nextRound(); return; } const pad=e.target.closest('.pad'); if(!pad||!waiting) return; const i=+pad.dataset.pad; flash(i); if(i!==pattern[step]){ const ov=document.createElement('div'); ov.style.position='fixed'; ov.style.inset='0'; ov.style.display='grid'; ov.style.placeItems='center'; ov.style.background='rgba(0,0,0,.55)'; ov.innerHTML=`<div style="background:#0b1220;padding:16px;border-radius:12px;box-shadow:var(--shadow);text-align:center"><div style="font-weight:900;font-size:18px">Failed on round ${pattern.length}</div><button id="againSimon" class="game-btn btn-green" style="margin-top:10px;padding:8px 12px">Try Again</button></div>`; document.body.appendChild(ov); $('#againSimon').addEventListener('click', ()=>{ ov.remove(); pattern=[]; step=0; roundEl.textContent=0; }); waiting=false; return; } step++; if(step>=pattern.length){ step=0; waiting=false; setTimeout(nextRound,600); } });
 
-    // Boot into first game
-    buildDeck(); renderDeck(); loadQuote(); updateSidebar('memory'); show('memory');
+    // Boot: stay on Home so the background is visible
+    buildDeck(); renderDeck(); loadQuote(); updateSidebar('memory');
   });
   </script>
 </body>
