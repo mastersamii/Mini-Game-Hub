@@ -3,23 +3,24 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Legendary RP — Mini Game Hub</title>
+  <title>Mini Game Hub</title>
   <style>
     :root{
-      --bg:#070c18;       /* dark navy */
-      --card:#0d1324;     /* card background */
-      --text:#e8eefc;     /* light text */
-      --muted:#a7b6da;    /* muted text */
-      --accent:#35d0ff;   /* accent/cyan */
+      --bg:#070c18;
+      --card:#0d1324;
+      --text:#e8eefc;
+      --muted:#a7b6da;
+      --accent:#35d0ff;
       --blue:#3b82f6; --violet:#8b5cf6; --teal:#14b8a6; --pink:#ec4899; --amber:#f59e0b; --red:#ef4444; --green:#22c55e; --yellow:#facc15;
       --shadow:0 10px 30px rgba(0,0,0,.45), inset 0 1px 0 rgba(255,255,255,.04);
       --radius:18px; --bg-image:none;
-      /* new: central font token so the UI looks uniform */
       --font: Inter, ui-sans-serif, system-ui, Segoe UI, Roboto, Helvetica, Arial;
     }
     *{box-sizing:border-box}
     html,body{height:100%}
-    body{margin:0; font-family:var(--font); color:var(--text); background:radial-gradient(1200px 600px at 80% -10%, rgba(53,208,255,.10), transparent 60%), radial-gradient(1000px 500px at 0% 110%, rgba(139,92,246,.12), transparent 60%), var(--bg);}     
+    body{margin:0; font-family:var(--font); color:var(--text);
+      background:radial-gradient(1200px 600px at 80% -10%, rgba(53,208,255,.10), transparent 60%),
+                 radial-gradient(1000px 500px at 0% 110%, rgba(139,92,246,.12), transparent 60%), var(--bg);}
     body.has-photo{background-image:var(--bg-image); background-size:cover; background-position:center; background-attachment:fixed}
     body.has-photo::before{content:""; position:fixed; inset:0; background:linear-gradient(180deg, rgba(7,12,24,.78), rgba(7,12,24,.9)); z-index:-1}
 
@@ -56,6 +57,10 @@
     .section{display:none}
     .section.active{display:block}
 
+    /* tiny top nav */
+    .topnav{display:none; margin:12px 0 -4px 0; justify-content:flex-end}
+    .topnav.show{display:flex}
+
     /* Typing */
     #typeText{background:#0f1629; padding:14px; border-radius:12px; line-height:1.75}
     #typeText span.correct{color:#86efac}
@@ -71,7 +76,7 @@
 
     /* Clicker */
     #clickerStage{display:grid; grid-template-columns:1fr; gap:10px}
-    #bigClick{height:280px; border-radius:14px; display:grid; place-items:center; background:radial-gradient(circle at 50% 40%, rgba(255,255,255,.06), transparent 50%), #0f1629; cursor:pointer; font-size:28px; font-weight:900}
+    #bigClick{height:280px; border-radius:14px; display:grid; place-items:center; background:radial-gradient(circle at 50% 40%, rgba(255,255,255,.06), transparent 50%), #0f1629; cursor:pointer; font-size:28px; font-weight:900; position:relative}
     .shop{display:grid; grid-template-columns:repeat(3,1fr); gap:10px}
     .shop .item{background:#0e1526; border:1px solid rgba(255,255,255,.06); border-radius:12px; padding:10px}
     .item h4{margin:0 0 6px 0; font-size:14px}
@@ -112,7 +117,7 @@
       </div>
     </header>
 
-    <!-- HOME / HERO so the background is visible -->
+    <!-- HOME / HERO -->
     <section id="home" class="panel section active" style="background:rgba(0,0,0,.28); border:1px solid rgba(255,255,255,.08)">
       <div style="display:grid; gap:14px; place-items:center; text-align:center; padding:34px 18px">
         <div style="font-size:28px; font-weight:900; letter-spacing:.5px">Welcome to Legendary RP Mini Games</div>
@@ -126,12 +131,18 @@
         </div>
       </div>
     </section>
-    <!-- Removed secondary launcher panel to avoid duplicate buttons -->
+    <!-- Secondary launcher panel -->
     </div>
 
     <div class="wrap">
       <aside class="panel" style="position:sticky; top:16px">
-        <div class="game-header"><div class="game-title" id="sideTitle">Select a game</div></div>
+        <div class="game-header">
+          <div class="game-title" id="sideTitle">Select a game</div>
+          <!-- NEW: main menu button -->
+          <div class="topnav" id="topnav">
+            <button id="backHome" class="game-btn btn-amber" title="Back to Main Menu">⟵ Main Menu</button>
+          </div>
+        </div>
         <div class="muted" id="sideDesc">Click a button above. Tip: paste a GTA-RP vibe background (saved locally).</div>
         <div id="sidePanel" class="muted" style="margin-top:10px"></div>
       </aside>
@@ -149,15 +160,52 @@
 
         <!-- Clicker -->
         <section id="clicker" class="section">
-          <div class="game-header"><div class="game-title">Heist Clicker</div><div class="score">$ <span id="cash">0</span> • /click: <span id="perClick">1</span> • CPS: <span id="cps">0</span></div></div>
+          <div class="game-header"><div class="game-title">Heist Clicker</div><div class="score">$ <span id="cash">0</span> • /click: <span id="perClick">1</span> • CPS: <span id="cps">1</span></div></div>
+
+          <!-- controls row -->
+          <div class="row" id="clickerControls" style="gap:6px; flex-wrap:wrap; margin-bottom:6px">
+            <span class="kbd">Buy:</span>
+            <button class="game-btn btn-blue" id="qty1"  style="padding:8px 10px">×1</button>
+            <button class="game-btn btn-blue" id="qty10" style="padding:8px 10px; opacity:.9">×10</button>
+            <span class="kbd" style="margin-left:10px">Notoriety:</span>
+            <span id="notoriety" class="kbd">0</span>
+            <button class="game-btn btn-red" id="prestige" style="padding:8px 10px; margin-left:auto" title="Reset progress for +10% earnings">Clean Slate (Prestige)</button>
+            <button class="game-btn btn-teal" id="toggleOptions" style="padding:8px 10px">Options</button>
+          </div>
+
+          <!-- small options -->
+          <div id="optionsPane" class="panel" style="display:none; padding:10px; margin-bottom:6px">
+            <label style="display:flex; align-items:center; gap:8px"><input type="checkbox" id="optParticles" checked> Particles</label>
+            <label style="display:flex; align-items:center; gap:8px"><input type="checkbox" id="optLog" checked> Event log</label>
+          </div>
+
           <div id="clickerStage">
             <div id="bigClick" class="panel" style="background:unset">CLICK TO EARN</div>
+
+            <!-- visual loot row -->
+            <div class="row" id="lootRow" style="gap:6px; flex-wrap:wrap">
+              <span class="kbd">Crew:</span>
+              <span id="badge-gear"   class="kbd">Gear 0</span>
+              <span id="badge-inside" class="kbd">Inside 0</span>
+              <span id="badge-auto"   class="kbd">Auto 0</span>
+              <span id="badge-crew"   class="kbd">Van 0</span>
+              <span id="badge-biz"    class="kbd">Biz 0</span>
+              <span id="badge-launder"class="kbd">Launder 0</span>
+              <span id="badge-drill"  class="kbd">Drill 0</span>
+            </div>
+
             <div class="shop">
               <div class="item"><h4>Better Gear</h4><div class="muted">+1 per click</div><button id="buyGear" class="game-btn btn-yellow">Buy $15</button></div>
               <div class="item"><h4>Inside Man</h4><div class="muted">+5 per click</div><button id="buyInside" class="game-btn btn-violet">Buy $100</button></div>
               <div class="item"><h4>Auto Clicker</h4><div class="muted">+1 CPS</div><button id="buyAuto" class="game-btn btn-green">Buy $75</button></div>
               <div class="item"><h4>Crew Van</h4><div class="muted">+5 CPS</div><button id="buyCrew" class="game-btn btn-blue">Buy $450</button></div>
               <div class="item"><h4>Vault Plan</h4><div class="muted">Events ↑</div><button id="buyEvents" class="game-btn btn-pink">Buy $300</button></div>
+
+              <!-- extras -->
+              <div class="item"><h4>Safecracker</h4><div class="muted">+10 per click</div><button id="buyCrack" class="game-btn btn-amber">Buy $350</button></div>
+              <div class="item"><h4>Front Business</h4><div class="muted">+5 CPS</div><button id="buyBiz" class="game-btn btn-yellow">Buy $600</button></div>
+              <div class="item"><h4>Money Launderer</h4><div class="muted">+15 CPS</div><button id="buyLaunder" class="game-btn btn-violet">Buy $1800</button></div>
+              <div class="item"><h4>Vault Drill</h4><div class="muted">+50 per click</div><button id="buyDrill" class="game-btn btn-red">Buy $2000</button></div>
             </div>
             <div id="eventLog" class="muted" style="margin-top:8px; font-size:13px">Events appear here…</div>
           </div>
@@ -199,22 +247,35 @@
 
     // Router
     const sections = $$('.section');
-    const stage = document.getElementById('stage');
     function show(id){
-      // hide home, show game stage area
       const home = document.getElementById('home');
       const stage = document.getElementById('stage');
+      const topnav = document.getElementById('topnav');
       if(home) home.classList.remove('active');
       if(stage) stage.style.display='block';
+      if(topnav) topnav.classList.add('show'); // show "Main Menu" button
 
       sections.forEach(s => s.classList.remove('active'));
       const el = document.getElementById(id);
       if(el){ el.classList.add('active'); window.scrollTo({top:0, behavior:'smooth'}); updateSidebar(id); }
       if(id==='mole') startMoles(); else stopMoles(true);
     }
+    function showHome(){
+      const home = document.getElementById('home');
+      const stage = document.getElementById('stage');
+      const topnav = document.getElementById('topnav');
+      stopMoles(true);
+      sections.forEach(s => s.classList.remove('active'));
+      if(stage) stage.style.display='none';
+      if(home) home.classList.add('active');
+      if(topnav) topnav.classList.remove('show');
+      updateSidebar('memory');
+      window.scrollTo({top:0, behavior:'smooth'});
+    }
+
     const info = {
       memory:{title:'Mugshot Match',desc:'Flip two to find a pair. Clear the grid!'},
-      clicker:{title:'Heist Clicker',desc:'Click to earn, buy upgrades. Random events fire periodically.'},
+      clicker:{title:'Heist Clicker',desc:'Click to earn, upgrades, random events, prestige & options.'},
       mole:{title:'Whack-a-Suspect',desc:'Click 🦹 for +1, avoid 🚫 (−2). 30s round.'},
       typing:{title:'Typing Sprint',desc:'Type the quote. Press Enter for a new one.'},
       simon:{title:'Simon Says',desc:'Remember and repeat the sequence.'}
@@ -225,10 +286,12 @@
       $('#sidePanel').innerHTML   = '';
     }
 
-    // Launcher bindings (and global safety net)
+    // Launcher bindings
     const launcherHome = $('#launcher-home');
     if(launcherHome){ launcherHome.addEventListener('click', (e)=>{ const btn=e.target.closest('button[data-section]'); if(btn) show(btn.dataset.section); }); }
-    // global safety net (kept):
+    // Main Menu button
+    $('#backHome').addEventListener('click', showHome);
+    // global safety net
     document.addEventListener('click', (e)=>{ const btn=e.target.closest('button[data-section]'); if(btn) show(btn.dataset.section); });
 
     // Background default + setter
@@ -252,38 +315,133 @@
 
     // ---------- Clicker ----------
     const cashEl=$('#cash'), perClickEl=$('#perClick'), cpsEl=$('#cps'), bigClick=$('#bigClick'), logEl=$('#eventLog');
-    const DEFAULT_CLICKER = { cash:0, add:1, crit:0.03, cps:1, eventsTier:0 }; // start with auto-income
-    const normalize = (o)=>({ cash:safeNum(o?.cash,0), add:safeNum(o?.add,1), crit:Math.min(.5,Math.max(0,safeNum(o?.crit,0.03))), cps:Math.max(1,safeNum(o?.cps,1)), eventsTier:Math.max(0,Math.floor(safeNum(o?.eventsTier,0))) });
+    const DEFAULT_CLICKER = {
+      cash:0, add:1, crit:0.03, cps:1, eventsTier:0,
+      notoriety:0, clicks:0,
+      inv:{gear:0,inside:0,auto:0,crew:0,biz:0,launder:0,drill:0}
+    };
+    const normalize = (o)=>({
+      cash:safeNum(o?.cash,0),
+      add:safeNum(o?.add,1),
+      crit:Math.min(.5,Math.max(0,safeNum(o?.crit,0.03))),
+      cps:Math.max(1,safeNum(o?.cps,1)),
+      eventsTier:Math.max(0,Math.floor(safeNum(o?.eventsTier,0))),
+      notoriety:Math.max(0,Math.floor(safeNum(o?.notoriety,0))),
+      clicks:Math.max(0,Math.floor(safeNum(o?.clicks,0))),
+      inv:{
+        gear:Math.max(0,Math.floor(safeNum(o?.inv?.gear,0))),
+        inside:Math.max(0,Math.floor(safeNum(o?.inv?.inside,0))),
+        auto:Math.max(0,Math.floor(safeNum(o?.inv?.auto,0))),
+        crew:Math.max(0,Math.floor(safeNum(o?.inv?.crew,0))),
+        biz:Math.max(0,Math.floor(safeNum(o?.inv?.biz,0))),
+        launder:Math.max(0,Math.floor(safeNum(o?.inv?.launder,0))),
+        drill:Math.max(0,Math.floor(safeNum(o?.inv?.drill,0))),
+      }
+    });
     const load = ()=>{ try{ const r=localStorage.getItem('lrp_clicker'); return normalize(r?JSON.parse(r):DEFAULT_CLICKER);}catch{ return {...DEFAULT_CLICKER}; } };
     let clicker = load();
     const save = ()=>localStorage.setItem('lrp_clicker', JSON.stringify(clicker));
     const fmt = (n)=>Math.floor(safeNum(n,0)).toLocaleString();
-    function hud(){ cashEl.textContent=fmt(clicker.cash); perClickEl.textContent=safeNum(clicker.add,1).toFixed(0); cpsEl.textContent=safeNum(clicker.cps,1).toFixed(0); }
-    function log(m){ const p=document.createElement('div'); p.textContent=`» ${m}`; logEl.prepend(p); while(logEl.children.length>6) logEl.lastChild.remove(); }
-    function burst(t){ const s=document.createElement('div'); s.textContent=t; s.style.position='absolute'; s.style.pointerEvents='none'; s.style.transform='translate(-50%,-50%)'; s.style.fontWeight='900'; s.style.fontSize='24px'; s.style.textShadow='0 2px 0 rgba(0,0,0,.4)'; s.style.animation='float 900ms ease forwards'; s.style.left='50%'; s.style.top='50%'; bigClick.appendChild(s); setTimeout(()=>s.remove(),900); }
-    // float animation style
+    const mult = ()=> 1 + 0.10*safeNum(clicker.notoriety,0);
+
+    function hud(){
+      cashEl.textContent=fmt(clicker.cash);
+      perClickEl.textContent=safeNum(clicker.add,1).toFixed(0);
+      cpsEl.textContent=safeNum(clicker.cps,1).toFixed(0);
+      $('#notoriety').textContent = safeNum(clicker.notoriety,0);
+      // badges
+      $('#badge-gear').textContent   = `Gear ${clicker.inv.gear}`;
+      $('#badge-inside').textContent = `Inside ${clicker.inv.inside}`;
+      $('#badge-auto').textContent   = `Auto ${clicker.inv.auto}`;
+      $('#badge-crew').textContent   = `Van ${clicker.inv.crew}`;
+      $('#badge-biz').textContent    = `Biz ${clicker.inv.biz}`;
+      $('#badge-launder').textContent= `Launder ${clicker.inv.launder}`;
+      $('#badge-drill').textContent  = `Drill ${clicker.inv.drill}`;
+    }
+    function log(m){ if(!$('#optLog') || $('#optLog').checked){ const p=document.createElement('div'); p.textContent=`» ${m}`; logEl.prepend(p); while(logEl.children.length>6) logEl.lastChild.remove(); } }
+    function burst(t){ if($('#optParticles') && !$('#optParticles').checked) return; const s=document.createElement('div'); s.textContent=t; s.style.position='absolute'; s.style.pointerEvents='none'; s.style.transform='translate(-50%,-50%)'; s.style.fontWeight='900'; s.style.fontSize='24px'; s.style.textShadow='0 2px 0 rgba(0,0,0,.4)'; s.style.animation='float 900ms ease forwards'; s.style.left='50%'; s.style.top='50%'; bigClick.appendChild(s); setTimeout(()=>s.remove(),900); }
     (function(){ const st=document.createElement('style'); st.textContent='@keyframes float{0%{opacity:1;transform:translate(-50%,-50%) scale(1)}100%{opacity:0;transform:translate(-50%,-120%) scale(1.2)}}'; document.head.appendChild(st); })();
 
-    bigClick.addEventListener('click', ()=>{ const crit=Math.random()<clicker.crit; const add=crit? clicker.add*5 : clicker.add; clicker.cash += add; hud(); burst(crit? `CRIT +$${add}` : `+$${add}`); save(); });
-    $('#buyGear').addEventListener('click', ()=>{ if(clicker.cash>=15){ clicker.cash-=15; clicker.add+=1; hud(); save(); }});
-    $('#buyInside').addEventListener('click', ()=>{ if(clicker.cash>=100){ clicker.cash-=100; clicker.add+=5; hud(); save(); }});
-    $('#buyAuto').addEventListener('click', ()=>{ if(clicker.cash>=75){ clicker.cash-=75; clicker.cps+=1; hud(); save(); }});
-    $('#buyCrew').addEventListener('click', ()=>{ if(clicker.cash>=450){ clicker.cash-=450; clicker.cps+=5; hud(); save(); }});
-    $('#buyEvents').addEventListener('click', ()=>{ if(clicker.cash>=300){ clicker.cash-=300; clicker.eventsTier++; hud(); save(); startEvents(); log('Bigger jobs unlocked: events happen more often.'); }});
+    // options toggle
+    $('#toggleOptions').addEventListener('click', ()=>{ const p=$('#optionsPane'); p.style.display = (p.style.display==='none'?'block':'none'); });
+
+    // buy qty
+    let buyQty = 1;
+    const setQty = (q)=>{ buyQty=q; $('#qty1').style.opacity=q===1?'1':'.9'; $('#qty10').style.opacity=q===10?'1':'.9'; };
+    $('#qty1').addEventListener('click', ()=>setQty(1));
+    $('#qty10').addEventListener('click', ()=>setQty(10));
+
+    // click to earn
+    bigClick.addEventListener('click', ()=>{
+      const crit=Math.random()<clicker.crit;
+      const add= (crit? clicker.add*5 : clicker.add) * mult();
+      clicker.cash = safeNum(clicker.cash + add, 0);
+      clicker.clicks++;
+      hud(); burst(crit? `CRIT +$${Math.floor(add)}` : `+$${Math.floor(add)}`); save();
+      // tiny achievements
+      if(clicker.cash>=100 && !localStorage.getItem('ach100')){ localStorage.setItem('ach100',1); log('Achievement: First $100!'); }
+      if(clicker.cash>=1000 && !localStorage.getItem('ach1k')){ localStorage.setItem('ach1k',1); log('Achievement: Four-figure stack!'); }
+      if(clicker.clicks>=100 && !localStorage.getItem('ach100c')){ localStorage.setItem('ach100c',1); log('Achievement: 100 clicks!'); }
+    });
+
+    // helper to process purchases with quantity
+    function buy(cost, apply, badgeKey){
+      const total = cost*buyQty;
+      if(clicker.cash>=total){
+        clicker.cash -= total;
+        for(let i=0;i<buyQty;i++) apply();
+        if(badgeKey){ clicker.inv[badgeKey]+=buyQty; }
+        hud(); save();
+        return true;
+      }
+      return false;
+    }
+
+    // base upgrades
+    $('#buyGear').addEventListener('click', ()=>{ if(buy(15, ()=>clicker.add+=1, 'gear')) log(`Bought Gear ×${buyQty}`); });
+    $('#buyInside').addEventListener('click', ()=>{ if(buy(100, ()=>clicker.add+=5, 'inside')) log(`Hired Inside Man ×${buyQty}`); });
+    $('#buyAuto').addEventListener('click', ()=>{ if(buy(75, ()=>clicker.cps+=1, 'auto')) log(`Bought Auto ×${buyQty}`); });
+    $('#buyCrew').addEventListener('click', ()=>{ if(buy(450, ()=>clicker.cps+=5, 'crew')) log(`Added Crew Van ×${buyQty}`); });
+    $('#buyEvents').addEventListener('click', ()=>{ if(buy(300, ()=>clicker.eventsTier+=1)) log('Bigger jobs unlocked: events happen more often.'); });
+
+    // extra upgrades
+    $('#buyCrack').addEventListener('click', ()=>{ if(buy(350, ()=>clicker.add+=10, 'gear')) log(`Safecracker ×${buyQty}`); });
+    $('#buyBiz').addEventListener('click',   ()=>{ if(buy(600, ()=>clicker.cps+=5, 'biz')) log(`Front Business ×${buyQty}`); });
+    $('#buyLaunder').addEventListener('click',()=>{ if(buy(1800,()=>clicker.cps+=15,'launder')) log(`Money Launderer ×${buyQty}`); });
+    $('#buyDrill').addEventListener('click', ()=>{ if(buy(2000,()=>clicker.add+=50,'drill')) log(`Vault Drill ×${buyQty}`); });
+
+    // Prestige (Clean Slate)
+    $('#prestige').addEventListener('click', ()=>{
+      if(clicker.cash<10000){ log('Need $10,000 to prestige.'); return; }
+      if(!confirm('Clean Slate: reset cash and upgrades for +10% earnings forever. Proceed?')) return;
+      clicker.notoriety += 1;
+      clicker.cash = 0; clicker.add = 1; clicker.cps = 1; clicker.eventsTier=0;
+      clicker.inv = {gear:0,inside:0,auto:0,crew:0,biz:0,launder:0,drill:0};
+      save(); hud(); log(`New Notoriety: ${clicker.notoriety} (+${clicker.notoriety*10}% earnings).`);
+    });
 
     // Passive tick & random events always-on
-    setInterval(()=>{ if(clicker.cps>0){ clicker.cash+=clicker.cps; hud(); save(); } },1000);
-    function startEvents(){ const base = Math.max(5, 18 - clicker.eventsTier*2); const delay = base + Math.random()*8; setTimeout(()=>{ triggerEvent(); startEvents(); }, delay*1000); }
+    setInterval(()=>{
+      const cpsGain = safeNum(clicker.cps,1) * mult();
+      clicker.cash = safeNum(clicker.cash + cpsGain, 0);
+      hud(); save();
+    },1000);
+
+    function startEvents(){
+      const base = Math.max(5, 18 - clicker.eventsTier*2);
+      const delay = base + Math.random()*8;
+      setTimeout(()=>{ triggerEvent(); startEvents(); }, delay*1000);
+    }
     function triggerEvent(){
-      const cash=safeNum(clicker.cash,0), add=safeNum(clicker.add,1), cps=safeNum(clicker.cps,0); let msg='', delta=0; const r=Math.random();
-      if(r<0.12){ delta=-Math.floor(cash*(0.15+Math.random()*0.25)); if(delta){ clicker.cash=cash+delta; msg=`Police raid! Lost $${fmt(-delta)}.`; }}
-      else if(r<0.24){ delta=-(100+Math.floor(Math.random()*400)); clicker.cash=Math.max(0,cash+delta); msg=`Shootout! Hospital bills $${fmt(-delta)}.`; }
-      else if(r<0.34){ delta=-(50+Math.floor(Math.random()*100)); clicker.cash=Math.max(0,cash+delta); msg=`Dye pack exploded. -$${fmt(-delta)}`; }
-      else if(r<0.48){ delta=Math.floor(cash*(0.05+Math.random()*0.10)); clicker.cash=cash+delta; msg=`Crypto pump! +$${fmt(delta)}`; }
-      else if(r<0.60){ delta=100+Math.floor(Math.random()*250); clicker.cash=cash+delta; msg=`Insurance payout +$${fmt(delta)}`; }
+      const cash=safeNum(clicker.cash,0), add=safeNum(clicker.add,1), cps=safeNum(clicker.cps,1); let msg=''; const r=Math.random();
+      if(r<0.12){ const delta=-Math.floor(cash*(0.15+Math.random()*0.25)); clicker.cash=Math.max(0,cash+delta); msg=`Police raid! Lost $${fmt(-delta)}.`; }
+      else if(r<0.24){ const delta=-(100+Math.floor(Math.random()*400)); clicker.cash=Math.max(0,cash+delta); msg=`Shootout! Hospital bills $${fmt(-delta)}.`; }
+      else if(r<0.34){ const delta=-(50+Math.floor(Math.random()*100)); clicker.cash=Math.max(0,cash+delta); msg=`Dye pack exploded. -$${fmt(-delta)}`; }
+      else if(r<0.48){ const delta=Math.floor(cash*(0.05+Math.random()*0.10)); clicker.cash=cash+delta; msg=`Crypto pump! +$${fmt(delta)}`; }
+      else if(r<0.60){ const delta=100+Math.floor(Math.random()*250); clicker.cash=cash+delta; msg=`Insurance payout +$${fmt(delta)}`; }
       else if(r<0.74){ if(add>1){ clicker.add=add-1; msg='Gear broke. -1 per click.'; } else msg='Close call. No losses.'; }
-      else if(r<0.86){ const saved=cps; msg='Heat is on! CPS paused 8s.'; clicker.cps=0; setTimeout(()=>{ clicker.cps=saved; hud(); },8000); }
-      else if(r<0.96){ clicker.cps=cps+2; msg='Crew double-time: +2 CPS (20s)'; setTimeout(()=>{ clicker.cps=Math.max(0,clicker.cps-2); hud(); },20000); }
+      else if(r<0.86){ const saved=cps; msg='Heat is on! CPS paused 8s.'; clicker.cps=1; setTimeout(()=>{ clicker.cps=saved; hud(); },8000); }
+      else if(r<0.96){ clicker.cps=cps+2; msg='Crew double-time: +2 CPS (20s)'; setTimeout(()=>{ clicker.cps=Math.max(1,clicker.cps-2); hud(); },20000); }
       else { clicker.crit=Math.min(.5,clicker.crit+.01); msg='Informant tip: +1% crit.'; }
       hud(); save(); if(msg) log(msg);
     }
