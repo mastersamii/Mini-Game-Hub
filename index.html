@@ -57,37 +57,31 @@
     .section{display:none}
     .section.active{display:block}
 
-    /* tiny top nav */
     .topnav{display:none; margin:12px 0 -4px 0; justify-content:flex-end}
     .topnav.show{display:flex}
 
-    /* Typing */
     #typeText{background:#0f1629; padding:14px; border-radius:12px; line-height:1.75}
     #typeText span.correct{color:#86efac}
     #typeText span.wrong{color:#fca5a5; text-decoration:underline}
     #typeText span.current{background:rgba(53,208,255,.15); border-radius:6px}
     #typingInput{width:100%; padding:12px 14px; border-radius:10px; background:#0e1526; border:1px solid rgba(255,255,255,.06); color:var(--text)}
 
-    /* Memory */
     #memoryGrid{display:grid; grid-template-columns:repeat(4,1fr); gap:10px}
     .card{ background:#0f1629; height:78px; border-radius:12px; display:grid; place-items:center; font-size:30px; cursor:pointer; transition:transform .2s ease, background .2s ease; user-select:none; box-shadow:var(--shadow) }
     .card.revealed{background:#13233f; transform:scale(1.02)}
     .card.matched{background:#0f2a16}
 
-    /* Clicker */
     #clickerStage{display:grid; grid-template-columns:1fr; gap:10px}
     #bigClick{height:280px; border-radius:14px; display:grid; place-items:center; background:radial-gradient(circle at 50% 40%, rgba(255,255,255,.06), transparent 50%), #0f1629; cursor:pointer; font-size:28px; font-weight:900; position:relative}
     .shop{display:grid; grid-template-columns:repeat(3,1fr); gap:10px}
     .shop .item{background:#0e1526; border:1px solid rgba(255,255,255,.06); border-radius:12px; padding:10px}
     .item h4{margin:0 0 6px 0; font-size:14px}
 
-    /* Mole */
     #moleGrid{display:grid; grid-template-columns:repeat(3,1fr); gap:10px}
     .hole{height:120px; background:#0f1629; border-radius:12px; position:relative; overflow:hidden}
     .mole{position:absolute; left:10px; right:10px; bottom:0; height:110px; border-radius:12px; background:linear-gradient(#fde68a,#f59e0b); box-shadow:var(--shadow); display:grid; place-items:center; font-size:40px; cursor:pointer; transform:translateY(110px); transition:transform .18s ease}
     .mole.up{transform:translateY(0)}
 
-    /* Simon */
     #simonBoard{display:grid; grid-template-columns:repeat(2,150px); gap:12px; justify-content:center}
     .pad{width:150px; height:150px; border-radius:18px; box-shadow:var(--shadow); opacity:.85; cursor:pointer}
     .pad.active{filter:brightness(1.6); opacity:1}
@@ -117,7 +111,7 @@
       </div>
     </header>
 
-    <!-- HOME / HERO -->
+    <!-- HOME -->
     <section id="home" class="panel section active" style="background:rgba(0,0,0,.28); border:1px solid rgba(255,255,255,.08)">
       <div style="display:grid; gap:14px; place-items:center; text-align:center; padding:34px 18px">
         <div style="font-size:28px; font-weight:900; letter-spacing:.5px">Welcome to the Mini Game Hub</div>
@@ -132,7 +126,7 @@
       </div>
     </section>
 
-    <!-- WHOLE PLAY AREA (sidebar + stage) HIDDEN BY DEFAULT -->
+    <!-- PLAY AREA (hidden until a game starts) -->
     <div class="wrap" id="playArea" style="display:none">
       <aside class="panel" style="position:sticky; top:16px">
         <div class="game-header">
@@ -238,32 +232,40 @@
     const $$ = (s, r=document) => [...r.querySelectorAll(s)];
     const safeNum = (v, fb=0) => { v = Number(v); return Number.isFinite(v) ? v : fb; };
 
-    // Router
+    // --- Router helpers ---
+    function removeMoleOverlay(){ document.getElementById('moleOverlay')?.remove(); }
+
     const sections = $$('.section');
     function show(id){
       const home    = $('#home');
       const stage   = $('#stage');
       const topnav  = $('#topnav');
-      const playArea= $('#playArea');                
+      const playArea= $('#playArea');
+      // leave other games cleanly
+      stopMoles(true);            // stop timers
+      removeMoleOverlay();        // remove any leftover overlay
+
       if(home) home.classList.remove('active');
       if(stage) stage.style.display='block';
-      if(playArea) playArea.style.display='grid';   
+      if(playArea) playArea.style.display='grid';
       if(topnav) topnav.classList.add('show');
 
       sections.forEach(s => s.classList.remove('active'));
       const el = document.getElementById(id);
       if(el){ el.classList.add('active'); window.scrollTo({top:0, behavior:'smooth'}); updateSidebar(id); }
-      if(id==='mole') startMoles(); else stopMoles(true);
+      if(id==='mole') startMoles();
     }
     function showHome(){
       const home    = $('#home');
       const stage   = $('#stage');
       const topnav  = $('#topnav');
-      const playArea= $('#playArea');                 
+      const playArea= $('#playArea');
       stopMoles(true);
+      removeMoleOverlay();
+
       sections.forEach(s => s.classList.remove('active'));
       if(stage) stage.style.display='none';
-      if(playArea) playArea.style.display='none';     
+      if(playArea) playArea.style.display='none';
       if(home) home.classList.add('active');
       if(topnav) topnav.classList.remove('show');
       updateSidebar('memory');
@@ -365,7 +367,6 @@
     $('#qty1').addEventListener('click', ()=>setQty(1));
     $('#qty10').addEventListener('click', ()=>setQty(10));
 
-    // click to earn
     $('#bigClick').addEventListener('click', ()=>{
       const crit=Math.random()<clicker.crit;
       const add= (crit? clicker.add*5 : clicker.add) * mult();
@@ -388,20 +389,17 @@
       return false;
     }
 
-    // base upgrades
     $('#buyGear').addEventListener('click', ()=>{ if(buy(15, ()=>clicker.add+=1, 'gear')) log(`Bought Gear ×${buyQty}`); });
     $('#buyInside').addEventListener('click', ()=>{ if(buy(100, ()=>clicker.add+=5, 'inside')) log(`Hired Inside Man ×${buyQty}`); });
     $('#buyAuto').addEventListener('click', ()=>{ if(buy(75, ()=>clicker.cps+=1, 'auto')) log(`Bought Auto ×${buyQty}`); });
     $('#buyCrew').addEventListener('click', ()=>{ if(buy(450, ()=>clicker.cps+=5, 'crew')) log(`Added Crew Van ×${buyQty}`); });
     $('#buyEvents').addEventListener('click', ()=>{ if(buy(300, ()=>clicker.eventsTier+=1)) log('Bigger jobs unlocked: events happen more often.'); });
 
-    // extra upgrades
     $('#buyCrack').addEventListener('click', ()=>{ if(buy(350, ()=>clicker.add+=10, 'gear')) log(`Safecracker ×${buyQty}`); });
     $('#buyBiz').addEventListener('click',   ()=>{ if(buy(600, ()=>clicker.cps+=5, 'biz')) log(`Front Business ×${buyQty}`); });
     $('#buyLaunder').addEventListener('click',()=>{ if(buy(1800,()=>clicker.cps+=15,'launder')) log(`Money Launderer ×${buyQty}`); });
     $('#buyDrill').addEventListener('click', ()=>{ if(buy(2000,()=>clicker.add+=50,'drill')) log(`Vault Drill ×${buyQty}`); });
 
-    // Prestige
     $('#prestige').addEventListener('click', ()=>{
       if(clicker.cash<10000){ log('Need $10,000 to prestige.'); return; }
       if(!confirm('Clean Slate: reset cash and upgrades for +10% earnings forever. Proceed?')) return;
@@ -411,7 +409,6 @@
       save(); hud(); log(`New Notoriety: ${clicker.notoriety} (+${clicker.notoriety*10}% earnings).`);
     });
 
-    // Passive tick & random events
     setInterval(()=>{ const cpsGain = safeNum(clicker.cps,1) * mult(); clicker.cash = safeNum(clicker.cash + cpsGain, 0); hud(); save(); },1000);
 
     function startEvents(){
@@ -437,10 +434,46 @@
     // ---------- Whack-a-Mole ----------
     const moleGrid=$('#moleGrid'), moleScoreEl=$('#moleScore'), moleTimeEl=$('#moleTime');
     let moleScore=0, moleTime=30, moleTimer=null, moleLoop=null, moleRound=false;
+
     function buildMoles(){ moleGrid.innerHTML=''; for(let i=0;i<9;i++){ const hole=document.createElement('div'); hole.className='hole'; const mole=document.createElement('div'); mole.className='mole'; mole.textContent='🦹'; hole.appendChild(mole); moleGrid.appendChild(hole);} }
-    function startMoles(){ buildMoles(); moleScore=0; moleTime=30; moleRound=true; moleScoreEl.textContent=0; moleTimeEl.textContent=moleTime; if(moleTimer) clearInterval(moleTimer); moleTimer=setInterval(()=>{ moleTime--; moleTimeEl.textContent=moleTime; if(moleTime<=0){ clearInterval(moleTimer); stopMoles(); } },1000); if(moleLoop) clearTimeout(moleLoop); (function tick(){ if(!moleRound) return; popOnce(); moleLoop=setTimeout(tick, 550+Math.random()*350); })(); }
-    function stopMoles(silent){ moleRound=false; if(moleLoop) clearTimeout(moleLoop); if(silent) return; const ov=document.createElement('div'); ov.style.position='fixed'; ov.style.inset='0'; ov.style.display='grid'; ov.style.placeItems='center'; ov.style.background='rgba(0,0,0,.55)'; ov.innerHTML=`<div style="background:#0b1220;padding:16px;border-radius:12px;box-shadow:var(--shadow);text-align:center"><div style="font-weight:900;font-size:18px">Time!</div><div class="muted">Score: <b>${moleScore}</b></div><button id="againMole" class="game-btn btn-red" style="margin-top:10px;padding:8px 12px">Play Again</button></div>`; document.body.appendChild(ov); $('#againMole').addEventListener('click', ()=>{ ov.remove(); startMoles(); }); }
-    function popOnce(){ if(!moleRound) return; $$('#moleGrid .mole').forEach(m=>{ m.classList.remove('up'); m.onclick=null; }); const moles=$$('#moleGrid .mole'); if(!moles.length) return; const m=moles[Math.floor(Math.random()*moles.length)]; const isCiv=Math.random()<0.15; m.textContent=isCiv?'🚫':'🦹'; void m.offsetWidth; m.classList.add('up'); m.onclick=()=>{ if(!moleRound) return; moleScore += (m.textContent==='🦹') ? 1 : -2; moleScoreEl.textContent=moleScore; m.classList.remove('up'); m.onclick=null; }; }
+
+    function startMoles(){
+      removeMoleOverlay();
+      buildMoles(); moleScore=0; moleTime=30; moleRound=true;
+      moleScoreEl.textContent=0; moleTimeEl.textContent=moleTime;
+      if(moleTimer) clearInterval(moleTimer);
+      moleTimer=setInterval(()=>{ moleTime--; moleTimeEl.textContent=moleTime; if(moleTime<=0){ clearInterval(moleTimer); stopMoles(false); } },1000);
+      if(moleLoop) clearTimeout(moleLoop);
+      (function tick(){ if(!moleRound) return; popOnce(); moleLoop=setTimeout(tick, 550+Math.random()*350); })();
+    }
+
+    function stopMoles(silent=true){
+      moleRound=false;
+      if(moleLoop){ clearTimeout(moleLoop); moleLoop=null; }
+      if(moleTimer){ clearInterval(moleTimer); moleTimer=null; }
+      removeMoleOverlay();
+      if(silent) return;
+      const ov=document.createElement('div');
+      ov.id='moleOverlay';
+      ov.style.position='fixed'; ov.style.inset='0'; ov.style.display='grid';
+      ov.style.placeItems='center'; ov.style.background='rgba(0,0,0,.55)'; ov.style.zIndex='9999';
+      ov.innerHTML=`<div style="background:#0b1220;padding:16px;border-radius:12px;box-shadow:var(--shadow);text-align:center">
+        <div style="font-weight:900;font-size:18px">Time!</div>
+        <div class="muted">Score: <b>${moleScore}</b></div>
+        <button id="againMole" class="game-btn btn-red" style="margin-top:10px;padding:8px 12px">Play Again</button>
+      </div>`;
+      document.body.appendChild(ov);
+      $('#againMole').addEventListener('click', ()=>{ ov.remove(); startMoles(); });
+    }
+
+    function popOnce(){ if(!moleRound) return;
+      $$('#moleGrid .mole').forEach(m=>{ m.classList.remove('up'); m.onclick=null; });
+      const moles=$$('#moleGrid .mole'); if(!moles.length) return;
+      const m=moles[Math.floor(Math.random()*moles.length)];
+      const isCiv=Math.random()<0.15; m.textContent=isCiv?'🚫':'🦹';
+      void m.offsetWidth; m.classList.add('up');
+      m.onclick=()=>{ if(!moleRound) return; moleScore += (m.textContent==='🦹') ? 1 : -2; moleScoreEl.textContent=moleScore; m.classList.remove('up'); m.onclick=null; };
+    }
 
     // ---------- Typing ----------
     const QUOTES=['Legendary minds stay calm under pressure.','Hold the line and trust your team.','Discipline turns chaos into progress.','Small habits build unstoppable momentum.','Breathe. Focus. Execute. Review.','Courage is a quiet kind of strength.','Precision is kindness to your future self.'];
@@ -457,7 +490,7 @@
     function flash(i){ pads[i].classList.add('active'); setTimeout(()=>pads[i].classList.remove('active'), 350); }
     function playPattern(){ playing=true; waiting=false; const d=500; pattern.forEach((p,ix)=>{ setTimeout(()=>flash(p), d*ix+300); }); setTimeout(()=>{ playing=false; waiting=true; }, d*pattern.length+350); }
     function nextRound(){ pattern.push(Math.floor(Math.random()*4)); roundEl.textContent=pattern.length; playPattern(); }
-    board.addEventListener('click',(e)=>{ if(e.target===board && !pattern.length){ nextRound(); return; } const pad=e.target.closest('.pad'); if(!pad||!waiting) return; const i=+pad.dataset.pad; flash(i); if(i!==pattern[step]){ const ov=document.createElement('div'); ov.style.position='fixed'; ov.style.inset='0'; ov.style.display='grid'; ov.style.placeItems='center'; ov.style.background='rgba(0,0,0,.55)'; ov.innerHTML=`<div style="background:#0b1220;padding:16px;border-radius:12px;box-shadow:var(--shadow);text-align:center"><div style="font-weight:900;font-size:18px">Failed on round ${pattern.length}</div><button id="againSimon" class="game-btn btn-green" style="margin-top:10px;padding:8px 12px">Try Again</button></div>`; document.body.appendChild(ov); $('#againSimon').addEventListener('click', ()=>{ ov.remove(); pattern=[]; step=0; roundEl.textContent=0; }); waiting=false; return; } step++; if(step>=pattern.length){ step=0; waiting=false; setTimeout(nextRound,600); } });
+    board.addEventListener('click',(e)=>{ if(e.target===board && !pattern.length){ nextRound(); return; } const pad=e.target.closest('.pad'); if(!pad||!waiting) return; const i=+pad.dataset.pad; flash(i); if(i!==pattern[step]){ const ov=document.createElement('div'); ov.style.position='fixed'; ov.style.inset='0'; ov.style.display='grid'; ov.style.placeItems='center'; ov.style.background='rgba(0,0,0,.55)'; ov.style.zIndex='9999'; ov.innerHTML=`<div style="background:#0b1220;padding:16px;border-radius:12px;box-shadow:var(--shadow);text-align:center"><div style="font-weight:900;font-size:18px">Failed on round ${pattern.length}</div><button id="againSimon" class="game-btn btn-green" style="margin-top:10px;padding:8px 12px">Try Again</button></div>`; document.body.appendChild(ov); $('#againSimon').addEventListener('click', ()=>{ ov.remove(); pattern=[]; step=0; roundEl.textContent=0; }); waiting=false; return; } step++; if(step>=pattern.length){ step=0; waiting=false; setTimeout(nextRound,600); } });
 
     // Boot
     buildDeck(); renderDeck(); loadQuote(); updateSidebar('memory');
