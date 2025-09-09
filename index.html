@@ -126,7 +126,7 @@
       </div>
     </section>
 
-    <!-- PLAY AREA (hidden until a game starts) -->
+    <!-- PLAY AREA -->
     <div class="wrap" id="playArea" style="display:none">
       <aside class="panel" style="position:sticky; top:16px">
         <div class="game-header">
@@ -152,7 +152,10 @@
 
         <!-- Clicker -->
         <section id="clicker" class="section">
-          <div class="game-header"><div class="game-title">Heist Clicker</div><div class="score">$ <span id="cash">0</span> • /click: <span id="perClick">1</span> • CPS: <span id="cps">1</span></div></div>
+          <div class="game-header">
+            <div class="game-title">Heist Clicker</div>
+            <div class="score">$ <span id="cash">0</span> • /click: <span id="perClick">1</span> • CPS: <span id="cps">0</span></div>
+          </div>
 
           <div class="row" id="clickerControls" style="gap:6px; flex-wrap:wrap; margin-bottom:6px">
             <span class="kbd">Buy:</span>
@@ -184,17 +187,27 @@
             </div>
 
             <div class="shop">
-              <div class="item"><h4>Better Gear</h4><div class="muted">+1 per click</div><button id="buyGear" class="game-btn btn-yellow">Buy $15</button></div>
-              <div class="item"><h4>Inside Man</h4><div class="muted">+5 per click</div><button id="buyInside" class="game-btn btn-violet">Buy $100</button></div>
-              <div class="item"><h4>Auto Clicker</h4><div class="muted">+1 CPS</div><button id="buyAuto" class="game-btn btn-green">Buy $75</button></div>
-              <div class="item"><h4>Crew Van</h4><div class="muted">+5 CPS</div><button id="buyCrew" class="game-btn btn-blue">Buy $450</button></div>
-              <div class="item"><h4>Vault Plan</h4><div class="muted">Events ↑</div><button id="buyEvents" class="game-btn btn-pink">Buy $300</button></div>
+              <div class="item"><h4>Better Gear</h4><div class="muted">+1 per click</div><button id="buyGear" class="game-btn btn-yellow">…</button></div>
+              <div class="item"><h4>Inside Man</h4><div class="muted">+5 per click</div><button id="buyInside" class="game-btn btn-violet">…</button></div>
+              <div class="item"><h4>Auto Clicker</h4><div class="muted">+1 CPS</div><button id="buyAuto" class="game-btn btn-green">…</button></div>
+              <div class="item"><h4>Crew Van</h4><div class="muted">+5 CPS</div><button id="buyCrew" class="game-btn btn-blue">…</button></div>
+              <div class="item"><h4>Vault Plan</h4><div class="muted">Events ↑</div><button id="buyEvents" class="game-btn btn-pink">…</button></div>
 
-              <div class="item"><h4>Safecracker</h4><div class="muted">+10 per click</div><button id="buyCrack" class="game-btn btn-amber">Buy $350</button></div>
-              <div class="item"><h4>Front Business</h4><div class="muted">+5 CPS</div><button id="buyBiz" class="game-btn btn-yellow">Buy $600</button></div>
-              <div class="item"><h4>Money Launderer</h4><div class="muted">+15 CPS</div><button id="buyLaunder" class="game-btn btn-violet">Buy $1800</button></div>
-              <div class="item"><h4>Vault Drill</h4><div class="muted">+50 per click</div><button id="buyDrill" class="game-btn btn-red">Buy $2000</button></div>
+              <div class="item"><h4>Safecracker</h4><div class="muted">+10 per click</div><button id="buyCrack" class="game-btn btn-amber">…</button></div>
+              <div class="item"><h4>Front Business</h4><div class="muted">+5 CPS</div><button id="buyBiz" class="game-btn btn-yellow">…</button></div>
+              <div class="item"><h4>Money Launderer</h4><div class="muted">+15 CPS</div><button id="buyLaunder" class="game-btn btn-violet">…</button></div>
+              <div class="item"><h4>Vault Drill</h4><div class="muted">+50 per click</div><button id="buyDrill" class="game-btn btn-red">…</button></div>
             </div>
+
+            <!-- New temporary boost -->
+            <div class="panel" style="margin-top:8px; padding:10px">
+              <div class="row" style="justify-content:space-between">
+                <div><b>Adrenaline Rush</b> <span class="muted">(+50% /click for 30s)</span></div>
+                <button id="buyRush" class="game-btn btn-teal">Buy (cost shown)</button>
+              </div>
+              <div class="muted" id="rushStatus" style="margin-top:6px">Ready.</div>
+            </div>
+
             <div id="eventLog" class="muted" style="margin-top:8px; font-size:13px">Events appear here…</div>
           </div>
         </section>
@@ -232,24 +245,19 @@
     const $$ = (s, r=document) => [...r.querySelectorAll(s)];
     const safeNum = (v, fb=0) => { v = Number(v); return Number.isFinite(v) ? v : fb; };
 
-    // --- Router helpers ---
+    /* ---------- Router + cleanup ---------- */
     function removeMoleOverlay(){ document.getElementById('moleOverlay')?.remove(); }
-
     const sections = $$('.section');
     function show(id){
       const home    = $('#home');
       const stage   = $('#stage');
       const topnav  = $('#topnav');
       const playArea= $('#playArea');
-      // leave other games cleanly
-      stopMoles(true);            // stop timers
-      removeMoleOverlay();        // remove any leftover overlay
-
+      stopMoles(true); removeMoleOverlay();
       if(home) home.classList.remove('active');
       if(stage) stage.style.display='block';
       if(playArea) playArea.style.display='grid';
       if(topnav) topnav.classList.add('show');
-
       sections.forEach(s => s.classList.remove('active'));
       const el = document.getElementById(id);
       if(el){ el.classList.add('active'); window.scrollTo({top:0, behavior:'smooth'}); updateSidebar(id); }
@@ -260,9 +268,7 @@
       const stage   = $('#stage');
       const topnav  = $('#topnav');
       const playArea= $('#playArea');
-      stopMoles(true);
-      removeMoleOverlay();
-
+      stopMoles(true); removeMoleOverlay();
       sections.forEach(s => s.classList.remove('active'));
       if(stage) stage.style.display='none';
       if(playArea) playArea.style.display='none';
@@ -271,10 +277,9 @@
       updateSidebar('memory');
       window.scrollTo({top:0, behavior:'smooth'});
     }
-
     const info = {
       memory:{title:'Mugshot Match',desc:'Flip two to find a pair. Clear the grid!'},
-      clicker:{title:'Heist Clicker',desc:'Click to earn, upgrades, random events, prestige & options.'},
+      clicker:{title:'Heist Clicker',desc:'Harder econ, events, prestige & options.'},
       mole:{title:'Whack-a-Suspect',desc:'Click 🦹 for +1, avoid 🚫 (−2). 30s round.'},
       typing:{title:'Typing Sprint',desc:'Type the quote. Press Enter for a new one.'},
       simon:{title:'Simon Says',desc:'Remember and repeat the sequence.'}
@@ -284,16 +289,11 @@
       $('#sideDesc').textContent  = info[id]?.desc  || 'Click a button above.';
       $('#sidePanel').innerHTML   = '';
     }
-
-    // Launchers & nav
-    $('#launcher-home')?.addEventListener('click', (e)=>{
-      const btn=e.target.closest('button[data-section]');
-      if(btn) show(btn.dataset.section);
-    });
+    $('#launcher-home')?.addEventListener('click', (e)=>{ const btn=e.target.closest('button[data-section]'); if(btn) show(btn.dataset.section); });
     $('#backHome')?.addEventListener('click', showHome);
     document.addEventListener('click', (e)=>{ const btn=e.target.closest('button[data-section]'); if(btn) show(btn.dataset.section); });
 
-    // Background
+    // Background keep
     const DEFAULT_BG = 'https://i.ibb.co/20f5k7Tn/awfasfaga.png';
     const savedBG = localStorage.getItem('lrp_bg_url');
     const startBG = savedBG || DEFAULT_BG;
@@ -301,7 +301,7 @@
     $('#bgUrl').value = startBG;
     $('#setBg').addEventListener('click', ()=>{ const url=$('#bgUrl').value.trim(); if(url){ document.body.classList.add('has-photo'); document.body.style.setProperty('--bg-image', `url('${url}')`); localStorage.setItem('lrp_bg_url', url);} });
 
-    // ---------- Memory ----------
+    /* ---------- Memory ---------- */
     const memoryGrid = $('#memoryGrid'); const movesEl = $('#moves'); const matchesEl = $('#matches');
     const EMOJIS = ['🦹','🚓','🧨','💼','🔒','🔦','🎯','🧭'];
     let deck=[], opened=[], moves=0, matches=0, lock=false;
@@ -312,21 +312,22 @@
     $('#resetMemory').addEventListener('click', ()=>{ buildDeck(); renderDeck(); });
     $('#peek').addEventListener('click', ()=>{ if(lock) return; lock=true; $$('#memoryGrid .card').forEach(el=>{ const id=+el.dataset.id; const c=deck.find(x=>x.id===id); if(!c.matched){ el.textContent=c.emoji; el.classList.add('revealed'); }}); setTimeout(()=>{ $$('#memoryGrid .card').forEach(el=>{ const id=+el.dataset.id; const c=deck.find(x=>x.id===id); if(!c.matched){ el.textContent='◼️'; el.classList.remove('revealed'); }}); lock=false; }, 2000); });
 
-    // ---------- Clicker ----------
-    const cashEl=$('#cash'), perClickEl=$('#perClick'), cpsEl=$('#cps'), bigClick=$('#bigClick'), logEl=$('#eventLog');
+    /* ---------- CLICKER: Harder economy + features ---------- */
+    const cashEl=$('#cash'), perClickEl=$('#perClick'), cpsEl=$('#cps'), bigClick=$('#bigClick'), logEl=$('#eventLog'), rushStatus=$('#rushStatus');
     const DEFAULT_CLICKER = {
-      cash:0, add:1, crit:0.03, cps:1, eventsTier:0,
-      notoriety:0, clicks:0,
+      cash:0, add:1, crit:0.02, cps:0, eventsTier:0,
+      notoriety:0, clicks:0, rushUntil:0,
       inv:{gear:0,inside:0,auto:0,crew:0,biz:0,launder:0,drill:0}
     };
     const normalize = (o)=>({
       cash:safeNum(o?.cash,0),
-      add:safeNum(o?.add,1),
-      crit:Math.min(.5,Math.max(0,safeNum(o?.crit,0.03))),
-      cps:Math.max(1,safeNum(o?.cps,1)),
+      add: Math.max(1, safeNum(o?.add,1)),
+      crit:Math.min(.5,Math.max(0,safeNum(o?.crit,0.02))),
+      cps: Math.max(0,safeNum(o?.cps,0)),
       eventsTier:Math.max(0,Math.floor(safeNum(o?.eventsTier,0))),
       notoriety:Math.max(0,Math.floor(safeNum(o?.notoriety,0))),
       clicks:Math.max(0,Math.floor(safeNum(o?.clicks,0))),
+      rushUntil:safeNum(o?.rushUntil,0),
       inv:{
         gear:Math.max(0,Math.floor(safeNum(o?.inv?.gear,0))),
         inside:Math.max(0,Math.floor(safeNum(o?.inv?.inside,0))),
@@ -342,12 +343,37 @@
     const save = ()=>localStorage.setItem('lrp_clicker', JSON.stringify(clicker));
     const fmt = (n)=>Math.floor(safeNum(n,0)).toLocaleString();
     const mult = ()=> 1 + 0.10*safeNum(clicker.notoriety,0);
+    const isRush = ()=> performance.now() < clicker.rushUntil;
+
+    // Shop definitions with cost multipliers
+    const SHOP = {
+      gear   : {name:'Better Gear',   base:50,   mult:1.15, incAdd: 1},
+      inside : {name:'Inside Man',    base:400,  mult:1.17, incAdd: 5},
+      auto   : {name:'Auto Clicker',  base:300,  mult:1.15, incCps: 1},
+      crew   : {name:'Crew Van',      base:1800, mult:1.18, incCps: 5},
+      events : {name:'Vault Plan',    base:1500, mult:1.25, incEvt:1},
+      crack  : {name:'Safecracker',   base:2500, mult:1.18, incAdd:10},
+      biz    : {name:'Front Business',base:3000, mult:1.18, incCps:5},
+      launder: {name:'Money Launderer',base:9000,mult:1.20, incCps:15},
+      drill  : {name:'Vault Drill',   base:10000,mult:1.22, incAdd:50}
+    };
+    const RUSH = { base: 3500, mult: 1.35, cooldown: 45000, dur: 30000 }; // cost scales on use
+
+    // geometric cost helpers
+    const nextCost = (key, i) => Math.ceil(SHOP[key].base * Math.pow(SHOP[key].mult, i));
+    const totalCostForN = (key, have, n)=>{
+      const m = SHOP[key].mult, b = SHOP[key].base * Math.pow(m, have);
+      if(n===1) return Math.ceil(b);
+      return Math.ceil(b * (Math.pow(m,n)-1)/(m-1));
+    };
 
     function hud(){
       cashEl.textContent=fmt(clicker.cash);
-      perClickEl.textContent=safeNum(clicker.add,1).toFixed(0);
-      cpsEl.textContent=safeNum(clicker.cps,1).toFixed(0);
+      const per = clicker.add * (isRush()?1.5:1) * mult();
+      perClickEl.textContent = Math.floor(per).toFixed(0);
+      cpsEl.textContent=safeNum(clicker.cps,0).toFixed(0);
       $('#notoriety').textContent = safeNum(clicker.notoriety,0);
+      // badges
       $('#badge-gear').textContent   = `Gear ${clicker.inv.gear}`;
       $('#badge-inside').textContent = `Inside ${clicker.inv.inside}`;
       $('#badge-auto').textContent   = `Auto ${clicker.inv.auto}`;
@@ -355,136 +381,155 @@
       $('#badge-biz').textContent    = `Biz ${clicker.inv.biz}`;
       $('#badge-launder').textContent= `Launder ${clicker.inv.launder}`;
       $('#badge-drill').textContent  = `Drill ${clicker.inv.drill}`;
+
+      // live prices
+      $('#buyGear').textContent    = `Buy $${fmt(nextCost('gear', clicker.inv.gear))}`;
+      $('#buyInside').textContent  = `Buy $${fmt(nextCost('inside', clicker.inv.inside))}`;
+      $('#buyAuto').textContent    = `Buy $${fmt(nextCost('auto', clicker.inv.auto))}`;
+      $('#buyCrew').textContent    = `Buy $${fmt(nextCost('crew', clicker.inv.crew))}`;
+      $('#buyEvents').textContent  = `Buy $${fmt(nextCost('events', clicker.eventsTier))}`;
+      $('#buyCrack').textContent   = `Buy $${fmt(nextCost('crack', clicker.inv.gear + clicker.inv.drill))}`;
+      $('#buyBiz').textContent     = `Buy $${fmt(nextCost('biz', clicker.inv.biz))}`;
+      $('#buyLaunder').textContent = `Buy $${fmt(nextCost('launder', clicker.inv.launder))}`;
+      $('#buyDrill').textContent   = `Buy $${fmt(nextCost('drill', clicker.inv.drill))}`;
+
+      // rush price / status
+      const rushUses = localStorage.getItem('rush_uses')|0;
+      const rushCost = Math.ceil(RUSH.base * Math.pow(RUSH.mult, rushUses));
+      $('#buyRush').textContent = isRush()? 'Active…' : `Buy $${fmt(rushCost)}`;
+      $('#buyRush').disabled = isRush();
+      rushStatus.textContent = isRush()? 'Adrenaline Rush ACTIVE (+50% /click)' :
+        'Ready.';
     }
-    function log(m){ if(!$('#optLog') || $('#optLog').checked){ const p=document.createElement('div'); p.textContent=`» ${m}`; logEl.prepend(p); while(logEl.children.length>6) logEl.lastChild.remove(); } }
+    function log(m){ if(!$('#optLog') || $('#optLog').checked){ const p=document.createElement('div'); p.textContent=`» ${m}`; logEl.prepend(p); while(logEl.children.length>7) logEl.lastChild.remove(); } }
     function burst(t){ if($('#optParticles') && !$('#optParticles').checked) return; const s=document.createElement('div'); s.textContent=t; s.style.position='absolute'; s.style.pointerEvents='none'; s.style.transform='translate(-50%,-50%)'; s.style.fontWeight='900'; s.style.fontSize='24px'; s.style.textShadow='0 2px 0 rgba(0,0,0,.4)'; s.style.animation='float 900ms ease forwards'; s.style.left='50%'; s.style.top='50%'; bigClick.appendChild(s); setTimeout(()=>s.remove(),900); }
     (function(){ const st=document.createElement('style'); st.textContent='@keyframes float{0%{opacity:1;transform:translate(-50%,-50%) scale(1)}100%{opacity:0;transform:translate(-50%,-120%) scale(1.2)}}'; document.head.appendChild(st); })();
 
     $('#toggleOptions').addEventListener('click', ()=>{ const p=$('#optionsPane'); p.style.display = (p.style.display==='none'?'block':'none'); });
 
+    // buy qty
     let buyQty = 1;
     const setQty = (q)=>{ buyQty=q; $('#qty1').style.opacity=q===1?'1':'.9'; $('#qty10').style.opacity=q===10?'1':'.9'; };
     $('#qty1').addEventListener('click', ()=>setQty(1));
     $('#qty10').addEventListener('click', ()=>setQty(10));
 
-    $('#bigClick').addEventListener('click', ()=>{
+    // click to earn
+    bigClick.addEventListener('click', ()=>{
       const crit=Math.random()<clicker.crit;
-      const add= (crit? clicker.add*5 : clicker.add) * mult();
+      const addBase = clicker.add * (isRush()?1.5:1) * mult();
+      const add= crit ? addBase*4 : addBase; // crits nerfed
       clicker.cash = safeNum(clicker.cash + add, 0);
       clicker.clicks++;
       hud(); burst(crit? `CRIT +$${Math.floor(add)}` : `+$${Math.floor(add)}`); save();
       if(clicker.cash>=100 && !localStorage.getItem('ach100')){ localStorage.setItem('ach100',1); log('Achievement: First $100!'); }
-      if(clicker.cash>=1000 && !localStorage.getItem('ach1k')){ localStorage.setItem('ach1k',1); log('Achievement: Four-figure stack!'); }
-      if(clicker.clicks>=100 && !localStorage.getItem('ach100c')){ localStorage.setItem('ach100c',1); log('Achievement: 100 clicks!'); }
+      if(clicker.cash>=10000 && !localStorage.getItem('ach10k')){ localStorage.setItem('ach10k',1); log('Achievement: Five figures!'); }
+      if(clicker.clicks>=250 && !localStorage.getItem('ach250c')){ localStorage.setItem('ach250c',1); log('Achievement: 250 clicks!'); }
     });
 
-    function buy(cost, apply, badgeKey){
-      const total = cost*buyQty;
+    function applyGain(key){
+      const item = SHOP[key];
+      if(item.incAdd) clicker.add += item.incAdd;
+      if(item.incCps) clicker.cps += item.incCps;
+      if(item.incEvt) clicker.eventsTier += item.incEvt;
+    }
+
+    function tryBuy(key, haveCountRef){
+      const have = haveCountRef();
+      const total = totalCostForN(key, have, buyQty);
       if(clicker.cash>=total){
         clicker.cash -= total;
-        for(let i=0;i<buyQty;i++) apply();
-        if(badgeKey){ clicker.inv[badgeKey]+=buyQty; }
+        for(let i=0;i<buyQty;i++) applyGain(key);
+        // bump inventory visual
+        if(key==='events'){ /* not in inv */ }
+        else if(key==='crack'){ clicker.inv.gear += buyQty; }
+        else { clicker.inv[key] += buyQty; }
+        log(`Bought ${SHOP[key].name} ×${buyQty} for $${fmt(total)}`);
         hud(); save(); return true;
+      } else {
+        log(`Need $${fmt(total - clicker.cash)} more for ×${buyQty}.`);
       }
       return false;
     }
 
-    $('#buyGear').addEventListener('click', ()=>{ if(buy(15, ()=>clicker.add+=1, 'gear')) log(`Bought Gear ×${buyQty}`); });
-    $('#buyInside').addEventListener('click', ()=>{ if(buy(100, ()=>clicker.add+=5, 'inside')) log(`Hired Inside Man ×${buyQty}`); });
-    $('#buyAuto').addEventListener('click', ()=>{ if(buy(75, ()=>clicker.cps+=1, 'auto')) log(`Bought Auto ×${buyQty}`); });
-    $('#buyCrew').addEventListener('click', ()=>{ if(buy(450, ()=>clicker.cps+=5, 'crew')) log(`Added Crew Van ×${buyQty}`); });
-    $('#buyEvents').addEventListener('click', ()=>{ if(buy(300, ()=>clicker.eventsTier+=1)) log('Bigger jobs unlocked: events happen more often.'); });
+    // buttons
+    $('#buyGear').addEventListener('click',   ()=> tryBuy('gear',   ()=>clicker.inv.gear));
+    $('#buyInside').addEventListener('click', ()=> tryBuy('inside', ()=>clicker.inv.inside));
+    $('#buyAuto').addEventListener('click',   ()=> tryBuy('auto',   ()=>clicker.inv.auto));
+    $('#buyCrew').addEventListener('click',   ()=> tryBuy('crew',   ()=>clicker.inv.crew));
+    $('#buyEvents').addEventListener('click', ()=> tryBuy('events', ()=>clicker.eventsTier));
+    $('#buyCrack').addEventListener('click',  ()=> tryBuy('crack',  ()=>clicker.inv.gear + clicker.inv.drill));
+    $('#buyBiz').addEventListener('click',    ()=> tryBuy('biz',    ()=>clicker.inv.biz));
+    $('#buyLaunder').addEventListener('click',()=> tryBuy('launder',()=>clicker.inv.launder));
+    $('#buyDrill').addEventListener('click',  ()=> tryBuy('drill',  ()=>clicker.inv.drill));
 
-    $('#buyCrack').addEventListener('click', ()=>{ if(buy(350, ()=>clicker.add+=10, 'gear')) log(`Safecracker ×${buyQty}`); });
-    $('#buyBiz').addEventListener('click',   ()=>{ if(buy(600, ()=>clicker.cps+=5, 'biz')) log(`Front Business ×${buyQty}`); });
-    $('#buyLaunder').addEventListener('click',()=>{ if(buy(1800,()=>clicker.cps+=15,'launder')) log(`Money Launderer ×${buyQty}`); });
-    $('#buyDrill').addEventListener('click', ()=>{ if(buy(2000,()=>clicker.add+=50,'drill')) log(`Vault Drill ×${buyQty}`); });
+    // Rush boost purchase
+    $('#buyRush').addEventListener('click', ()=>{
+      if(isRush()) return;
+      const uses = localStorage.getItem('rush_uses')|0;
+      const cost = Math.ceil(RUSH.base * Math.pow(RUSH.mult, uses));
+      if(clicker.cash < cost){ log('Not enough for Adrenaline Rush.'); return; }
+      clicker.cash -= cost;
+      clicker.rushUntil = performance.now() + RUSH.dur;
+      localStorage.setItem('rush_uses', (+uses)+1);
+      log('Adrenaline Rush ACTIVATED (+50% /click for 30s)');
+      hud(); save();
+      setTimeout(()=>{ hud(); save(); }, RUSH.dur+50);
+    });
 
+    // Prestige
     $('#prestige').addEventListener('click', ()=>{
-      if(clicker.cash<10000){ log('Need $10,000 to prestige.'); return; }
+      if(clicker.cash<250000){ log('Need $250,000 to prestige.'); return; }
       if(!confirm('Clean Slate: reset cash and upgrades for +10% earnings forever. Proceed?')) return;
       clicker.notoriety += 1;
-      clicker.cash = 0; clicker.add = 1; clicker.cps = 1; clicker.eventsTier=0;
+      clicker.cash = 0; clicker.add = 1; clicker.cps = 0; clicker.eventsTier=0;
       clicker.inv = {gear:0,inside:0,auto:0,crew:0,biz:0,launder:0,drill:0};
       save(); hud(); log(`New Notoriety: ${clicker.notoriety} (+${clicker.notoriety*10}% earnings).`);
     });
 
-    setInterval(()=>{ const cpsGain = safeNum(clicker.cps,1) * mult(); clicker.cash = safeNum(clicker.cash + cpsGain, 0); hud(); save(); },1000);
+    // Passive tick
+    setInterval(()=>{
+      const cpsGain = safeNum(clicker.cps,0) * mult();
+      clicker.cash = safeNum(clicker.cash + cpsGain, 0);
+      hud(); save();
+    },1000);
 
+    // Random events
     function startEvents(){
-      const base = Math.max(5, 18 - clicker.eventsTier*2);
-      const delay = base + Math.random()*8;
+      const base = Math.max(8, 22 - clicker.eventsTier*2); // slower unless you invest
+      const delay = base + Math.random()*10;
       setTimeout(()=>{ triggerEvent(); startEvents(); }, delay*1000);
     }
     function triggerEvent(){
-      const cash=safeNum(clicker.cash,0), add=safeNum(clicker.add,1), cps=safeNum(clicker.cps,1); let msg=''; const r=Math.random();
-      if(r<0.12){ const d=-Math.floor(cash*(0.15+Math.random()*0.25)); clicker.cash=Math.max(0,cash+d); msg=`Police raid! Lost $${fmt(-d)}.`; }
-      else if(r<0.24){ const d=-(100+Math.floor(Math.random()*400)); clicker.cash=Math.max(0,cash+d); msg=`Shootout! Hospital bills $${fmt(-d)}.`; }
-      else if(r<0.34){ const d=-(50+Math.floor(Math.random()*100)); clicker.cash=Math.max(0,cash+d); msg=`Dye pack exploded. -$${fmt(-d)}`; }
-      else if(r<0.48){ const d=Math.floor(cash*(0.05+Math.random()*0.10)); clicker.cash=cash+d; msg=`Crypto pump! +$${fmt(d)}`; }
-      else if(r<0.60){ const d=100+Math.floor(Math.random()*250); clicker.cash=cash+d; msg=`Insurance payout +$${fmt(d)}`; }
-      else if(r<0.74){ if(add>1){ clicker.add=add-1; msg='Gear broke. -1 per click.'; } else msg='Close call. No losses.'; }
-      else if(r<0.86){ const saved=cps; msg='Heat is on! CPS paused 8s.'; clicker.cps=1; setTimeout(()=>{ clicker.cps=saved; hud(); },8000); }
-      else if(r<0.96){ clicker.cps=cps+2; msg='Crew double-time: +2 CPS (20s)'; setTimeout(()=>{ clicker.cps=Math.max(1,clicker.cps-2); hud(); },20000); }
-      else { clicker.crit=Math.min(.5,clicker.crit+.01); msg='Informant tip: +1% crit.'; }
+      const cash=safeNum(clicker.cash,0), add=safeNum(clicker.add,1), cps=safeNum(clicker.cps,0);
+      let msg=''; const r=Math.random();
+      if(r<0.10){ const d=-Math.floor(cash*(0.20+Math.random()*0.20)); clicker.cash=Math.max(0,cash+d); msg=`Police raid! Lost $${fmt(-d)}.`; }
+      else if(r<0.20){ const d=-(250+Math.floor(Math.random()*500)); clicker.cash=Math.max(0,cash+d); msg=`Shootout! Hospital bills $${fmt(-d)}.`; }
+      else if(r<0.28){ const d=-(150+Math.floor(Math.random()*250)); clicker.cash=Math.max(0,cash+d); msg=`Dye pack exploded. -$${fmt(-d)}`; }
+      else if(r<0.44){ const d=Math.floor(cash*(0.03+Math.random()*0.06)); clicker.cash=cash+d; msg=`Crypto pump! +$${fmt(d)}`; }
+      else if(r<0.54){ const d=120+Math.floor(Math.random()*220); clicker.cash=cash+d; msg=`Insurance payout +$${fmt(d)}`; }
+      else if(r<0.66){ if(add>1){ clicker.add=add-1; msg='Gear broke. -1 per click.'; } else msg='Close call. No losses.'; }
+      else if(r<0.78){ const saved=cps; msg='Heat is on! CPS paused 10s.'; clicker.cps=0; setTimeout(()=>{ clicker.cps=saved; hud(); },10000); }
+      else if(r<0.92){ clicker.cps=cps+1; msg='Crew double-time: +1 CPS (20s)'; setTimeout(()=>{ clicker.cps=Math.max(0,clicker.cps-1); hud(); },20000); }
+      else { clicker.crit=Math.min(.5,clicker.crit+.005); msg='Informant tip: +0.5% crit.'; }
       hud(); save(); if(msg) log(msg);
     }
     startEvents(); hud();
 
-    // ---------- Whack-a-Mole ----------
+    /* ---------- Whack-a-Mole ---------- */
     const moleGrid=$('#moleGrid'), moleScoreEl=$('#moleScore'), moleTimeEl=$('#moleTime');
     let moleScore=0, moleTime=30, moleTimer=null, moleLoop=null, moleRound=false;
-
     function buildMoles(){ moleGrid.innerHTML=''; for(let i=0;i<9;i++){ const hole=document.createElement('div'); hole.className='hole'; const mole=document.createElement('div'); mole.className='mole'; mole.textContent='🦹'; hole.appendChild(mole); moleGrid.appendChild(hole);} }
+    function startMoles(){ removeMoleOverlay(); buildMoles(); moleScore=0; moleTime=30; moleRound=true; moleScoreEl.textContent=0; moleTimeEl.textContent=moleTime; if(moleTimer) clearInterval(moleTimer); moleTimer=setInterval(()=>{ moleTime--; moleTimeEl.textContent=moleTime; if(moleTime<=0){ clearInterval(moleTimer); stopMoles(false); } },1000); if(moleLoop) clearTimeout(moleLoop); (function tick(){ if(!moleRound) return; popOnce(); moleLoop=setTimeout(tick, 550+Math.random()*350); })(); }
+    function stopMoles(silent=true){ moleRound=false; if(moleLoop){ clearTimeout(moleLoop); moleLoop=null; } if(moleTimer){ clearInterval(moleTimer); moleTimer=null; } removeMoleOverlay(); if(silent) return; const ov=document.createElement('div'); ov.id='moleOverlay'; ov.style.position='fixed'; ov.style.inset='0'; ov.style.display='grid'; ov.style.placeItems='center'; ov.style.background='rgba(0,0,0,.55)'; ov.style.zIndex='9999'; ov.innerHTML=`<div style="background:#0b1220;padding:16px;border-radius:12px;box-shadow:var(--shadow);text-align:center"><div style="font-weight:900;font-size:18px">Time!</div><div class="muted">Score: <b>${moleScore}</b></div><button id="againMole" class="game-btn btn-red" style="margin-top:10px;padding:8px 12px">Play Again</button></div>`; document.body.appendChild(ov); $('#againMole').addEventListener('click', ()=>{ ov.remove(); startMoles(); }); }
+    function popOnce(){ if(!moleRound) return; $$('#moleGrid .mole').forEach(m=>{ m.classList.remove('up'); m.onclick=null; }); const moles=$$('#moleGrid .mole'); if(!moles.length) return; const m=moles[Math.floor(Math.random()*moles.length)]; const isCiv=Math.random()<0.15; m.textContent=isCiv?'🚫':'🦹'; void m.offsetWidth; m.classList.add('up'); m.onclick=()=>{ if(!moleRound) return; moleScore += (m.textContent==='🦹') ? 1 : -2; moleScoreEl.textContent=moleScore; m.classList.remove('up'); m.onclick=null; }; }
 
-    function startMoles(){
-      removeMoleOverlay();
-      buildMoles(); moleScore=0; moleTime=30; moleRound=true;
-      moleScoreEl.textContent=0; moleTimeEl.textContent=moleTime;
-      if(moleTimer) clearInterval(moleTimer);
-      moleTimer=setInterval(()=>{ moleTime--; moleTimeEl.textContent=moleTime; if(moleTime<=0){ clearInterval(moleTimer); stopMoles(false); } },1000);
-      if(moleLoop) clearTimeout(moleLoop);
-      (function tick(){ if(!moleRound) return; popOnce(); moleLoop=setTimeout(tick, 550+Math.random()*350); })();
-    }
-
-    function stopMoles(silent=true){
-      moleRound=false;
-      if(moleLoop){ clearTimeout(moleLoop); moleLoop=null; }
-      if(moleTimer){ clearInterval(moleTimer); moleTimer=null; }
-      removeMoleOverlay();
-      if(silent) return;
-      const ov=document.createElement('div');
-      ov.id='moleOverlay';
-      ov.style.position='fixed'; ov.style.inset='0'; ov.style.display='grid';
-      ov.style.placeItems='center'; ov.style.background='rgba(0,0,0,.55)'; ov.style.zIndex='9999';
-      ov.innerHTML=`<div style="background:#0b1220;padding:16px;border-radius:12px;box-shadow:var(--shadow);text-align:center">
-        <div style="font-weight:900;font-size:18px">Time!</div>
-        <div class="muted">Score: <b>${moleScore}</b></div>
-        <button id="againMole" class="game-btn btn-red" style="margin-top:10px;padding:8px 12px">Play Again</button>
-      </div>`;
-      document.body.appendChild(ov);
-      $('#againMole').addEventListener('click', ()=>{ ov.remove(); startMoles(); });
-    }
-
-    function popOnce(){ if(!moleRound) return;
-      $$('#moleGrid .mole').forEach(m=>{ m.classList.remove('up'); m.onclick=null; });
-      const moles=$$('#moleGrid .mole'); if(!moles.length) return;
-      const m=moles[Math.floor(Math.random()*moles.length)];
-      const isCiv=Math.random()<0.15; m.textContent=isCiv?'🚫':'🦹';
-      void m.offsetWidth; m.classList.add('up');
-      m.onclick=()=>{ if(!moleRound) return; moleScore += (m.textContent==='🦹') ? 1 : -2; moleScoreEl.textContent=moleScore; m.classList.remove('up'); m.onclick=null; };
-    }
-
-    // ---------- Typing ----------
+    /* ---------- Typing & Simon ---------- */
     const QUOTES=['Legendary minds stay calm under pressure.','Hold the line and trust your team.','Discipline turns chaos into progress.','Small habits build unstoppable momentum.','Breathe. Focus. Execute. Review.','Courage is a quiet kind of strength.','Precision is kindness to your future self.'];
     const typeText=$('#typeText'), typingInput=$('#typingInput');
     let target='', idx=0, correct=0, typed=0, tstart=0;
     function loadQuote(){ target=QUOTES[Math.floor(Math.random()*QUOTES.length)]; typeText.innerHTML=[...target].map((ch,i)=>`<span ${i===0?'class="current"':''}>${ch===' '?'&nbsp;':ch}</span>`).join(''); idx=0; correct=0; typed=0; tstart=0; updateHUD(); typingInput.value=''; typingInput.focus(); }
     function updateHUD(){ const now=performance.now(); const min=tstart? (now-tstart)/60000:0; const wpm=min>0? Math.round((correct/5)/min):0; const acc=typed>0? Math.max(0,Math.round(100*correct/typed)):100; $('#wpm').textContent=wpm; $('#acc').textContent=acc+'%'; }
-    typingInput.addEventListener('keydown',(e)=>{ if(e.key==='Enter'){ e.preventDefault(); loadQuote(); }});
-    typingInput.addEventListener('input',()=>{ if(!$('#typing').classList.contains('active')) return; if(!tstart) tstart=performance.now(); const ch=typingInput.value.slice(-1); typed++; const spans=$$('#typeText span'); const exp=target[idx]; if(ch===exp){ spans[idx].classList.remove('current'); spans[idx].classList.add('correct'); idx++; correct++; if(idx<spans.length) spans[idx].classList.add('current'); } else { spans[idx]?.classList.add('wrong'); } updateHUD(); if(idx>=target.length){ typingInput.blur(); }});
-
-    // ---------- Simon ----------
+    typingInput.addEventListener('keydown',(e)=>{ if(e.key==='Enter'){ e.preventDefault(); loadQuote(); }}); typingInput.addEventListener('input',()=>{ if(!$('#typing').classList.contains('active')) return; if(!tstart) tstart=performance.now(); const ch=typingInput.value.slice(-1); typed++; const spans=$$('#typeText span'); const exp=target[idx]; if(ch===exp){ spans[idx].classList.remove('current'); spans[idx].classList.add('correct'); idx++; correct++; if(idx<spans.length) spans[idx].classList.add('current'); } else { spans[idx]?.classList.add('wrong'); } updateHUD(); if(idx>=target.length){ typingInput.blur(); }});
     const board=$('#simonBoard'), pads=$$('.pad'), roundEl=$('#simonRound');
     let pattern=[], step=0, playing=false, waiting=false;
     function flash(i){ pads[i].classList.add('active'); setTimeout(()=>pads[i].classList.remove('active'), 350); }
@@ -493,7 +538,7 @@
     board.addEventListener('click',(e)=>{ if(e.target===board && !pattern.length){ nextRound(); return; } const pad=e.target.closest('.pad'); if(!pad||!waiting) return; const i=+pad.dataset.pad; flash(i); if(i!==pattern[step]){ const ov=document.createElement('div'); ov.style.position='fixed'; ov.style.inset='0'; ov.style.display='grid'; ov.style.placeItems='center'; ov.style.background='rgba(0,0,0,.55)'; ov.style.zIndex='9999'; ov.innerHTML=`<div style="background:#0b1220;padding:16px;border-radius:12px;box-shadow:var(--shadow);text-align:center"><div style="font-weight:900;font-size:18px">Failed on round ${pattern.length}</div><button id="againSimon" class="game-btn btn-green" style="margin-top:10px;padding:8px 12px">Try Again</button></div>`; document.body.appendChild(ov); $('#againSimon').addEventListener('click', ()=>{ ov.remove(); pattern=[]; step=0; roundEl.textContent=0; }); waiting=false; return; } step++; if(step>=pattern.length){ step=0; waiting=false; setTimeout(nextRound,600); } });
 
     // Boot
-    buildDeck(); renderDeck(); loadQuote(); updateSidebar('memory');
+    buildDeck(); renderDeck(); loadQuote(); updateSidebar('memory'); hud();
   });
   </script>
 </body>
